@@ -1,0 +1,49 @@
+# 网站 | website
+favicon: /images/favicon.ico
+logo:
+title: "Francis' Olio"
+
+# 菜单 | menu
+menu:
+  Home: /
+  Posts: /posts
+  Stats: /stats
+  About: /about
+
+# 轮播图 | swiper
+swiper:
+  image: /images/swiper.jpg
+  title: "Francis' Olio"
+
+# 页面布局
+layout:
+  stats: stats
+  archive: archive
+  category: category
+  about: about
+
+# 页脚 | footer
+footer:
+  count:
+  since: 2026-06-27
+  authorLink:
+  themeLink: https://github.com/asukacc/YoruKumo
+
+# 关于页面配置
+about:
+  name: 'Francis / Olio / 陈立'
+  description: '在日本研究室的混合型博主，记录技术与生活'
+  avatar: /images/avatar.jpg
+  email: 'faith18343@gmail.com'
+  wechat: ''
+  qq: ''
+  github: ''
+  linkedin: ''
+
+# GSAP 动画配置 | GSAP Animations Configuration
+gsap:
+  enable: true
+  entrance_stagger: 0.08
+  scroll_trigger: true
+  parallax: true
+  hover_effect: true
