@@ -19,9 +19,9 @@ This is a **Hexo 8** static blog ("Francis' Olio") that generates a Chinese/Japa
 
 **Configuration split:**
 - `_config.yml` — global Hexo config: site metadata, permalink format (`:year/:month/:day/:title/`), pagination (10/page), syntax highlighting, deployment target
-- `_config.YoruKumo.yml` — theme-specific config: menu, swiper image, about-page content, footer, GSAP animation toggles
+- `_config.Francis.yml` — theme-specific config: menu, swiper image, about-page content, footer, GSAP animation toggles
 
-**Theme:** YoruKumo (located in `themes/YoruKumo/`). EJS templates live in `themes/YoruKumo/layout/`. The theme has its own `_config.yml` inside the theme folder; the site-level `_config.YoruKumo.yml` overrides it per Hexo's theme config merging convention.
+**Theme:** Francis (located in `themes/Francis/`). EJS templates live in `themes/Francis/layout/`. The theme has its own `_config.yml` inside the theme folder; the site-level `_config.Francis.yml` overrides it per Hexo's theme config merging convention.
 
 **Content:**
 - Posts go in `source/_posts/` as Markdown with frontmatter (`title`, `date`, `categories`, `tags`)
