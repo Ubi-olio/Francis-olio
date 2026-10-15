@@ -27,13 +27,13 @@ footer:
   count:
   since: 2026-06-27
   authorLink:
-  themeLink: https://github.com/asukacc/Francis
+  themeLink: https://github.com/AsukaCC/YoruKumo
 
 # 关于页面配置
 about:
   name: 'Francis / Olio / 陈立'
   description: '在日本研究室的混合型博主，记录技术与生活'
-  avatar: /images/avatar.jpg
+  avatar: /images/francis-avatar.jpg
   email: 'faith18343@gmail.com'
   wechat: ''
   qq: ''

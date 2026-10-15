@@ -1,11 +1,13 @@
 ---
 title: 你好，这里是 Francis' Olio
-date: 2026-06-27
+date: 2026-06-27 00:00:00 +0900
+permalink: 2026/06/27/hello-world/
 categories:
-  - 随笔
+  - 生活
 tags:
   - 博客
   - 日常
+  - 随笔
 ---
 
 ## 欢迎来到 Francis' Olio
