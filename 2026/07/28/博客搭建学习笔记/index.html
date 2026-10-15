@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>博客搭建学习笔记</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "博客搭建学习笔记",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">博客搭建学习笔记</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-07-28 21:52</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/Hexo/" rel="tag">Hexo</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><h2 id="技术栈概览"><a href="#技术栈概览" class="headerlink" title="技术栈概览"></a>技术栈概览</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">写 Markdown → hexo server 预览 → 满意了 git push → 自动部署</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>Markdown</strong> — 写文章用的格式</li>
+<li><strong>Hexo</strong> — 把 Markdown 变成网页的工具（Node.js）</li>
+<li><strong>Francis 主题</strong> — 决定网页长什么样（EJS 模板 + CSS + JS）</li>
+<li><strong>Git</strong> — 版本管理，部署也靠它</li>
+</ul>
+<h2 id="主题-JS-文件分布"><a href="#主题-JS-文件分布" class="headerlink" title="主题 JS 文件分布"></a>主题 JS 文件分布</h2><p>主题的 JS 分两类：</p>
+<h3 id="themes-Francis-source-js-—-在浏览器里跑的-JS"><a href="#themes-Francis-source-js-—-在浏览器里跑的-JS" class="headerlink" title="themes/Francis/source/js/ — 在浏览器里跑的 JS"></a><code>themes/Francis/source/js/</code> — 在浏览器里跑的 JS</h3><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>animation.js</code></td>
+<td>GSAP 动画，卡片进场、视差滚动、悬浮效果</td>
+</tr>
+<tr>
+<td><code>header.js</code></td>
+<td>导航栏滚动时的显示&#x2F;隐藏行为</td>
+</tr>
+<tr>
+<td><code>head.js</code></td>
+<td>页面切换标题（activeTitle &#x2F; inactiveTitle）</td>
+</tr>
+<tr>
+<td><code>highlight.js</code></td>
+<td>代码块高亮和复制按钮</td>
+</tr>
+<tr>
+<td><code>image-viewer.js</code></td>
+<td>点击图片放大查看</td>
+</tr>
+<tr>
+<td><code>tag-sankey.js</code></td>
+<td>统计页的桑基图（D3.js）</td>
+</tr>
+<tr>
+<td><code>tasklist.js</code></td>
+<td>复选框交互（我们自己加的）</td>
+</tr>
+<tr>
+<td><code>iconfont.js</code></td>
+<td>图标字体加载</td>
+</tr>
+</tbody></table>
+<h3 id="themes-Francis-layout-—-EJS-模板（服务端）"><a href="#themes-Francis-layout-—-EJS-模板（服务端）" class="headerlink" title="themes/Francis/layout/ — EJS 模板（服务端）"></a><code>themes/Francis/layout/</code> — EJS 模板（服务端）</h3><p>不是真正的 JS，是 Hexo 构建时用来生成 HTML 的模板，里面可以嵌入 <code>&lt;% %&gt;</code> 逻辑。</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>对应页面</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>layout.ejs</code></td>
+<td>所有页面的外壳（引入 CSS&#x2F;JS）</td>
+</tr>
+<tr>
+<td><code>index.ejs</code></td>
+<td>首页</td>
+</tr>
+<tr>
+<td><code>posts.ejs</code></td>
+<td>文章列表页</td>
+</tr>
+<tr>
+<td><code>post.ejs</code></td>
+<td>单篇文章页</td>
+</tr>
+<tr>
+<td><code>about.ejs</code></td>
+<td>关于页</td>
+</tr>
+<tr>
+<td><code>stats.ejs</code></td>
+<td>统计页</td>
+</tr>
+<tr>
+<td><code>archive.ejs</code></td>
+<td>归档页</td>
+</tr>
+<tr>
+<td><code>_partial/</code></td>
+<td>公共组件（头部、导航、页脚）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>改”文章”页的显示逻辑 → 动 <code>layout/posts.ejs</code><br>加全局交互行为 → 动 <code>source/js/</code> 里的文件</p>
+</blockquote>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev">
+            <i class="fa fa-chevron-left"></i>
+            <a href="/Francis-olio/2026/07/29/2026-07-29-%E6%97%A5%E8%AE%B0/" rel="prev">
+              2026-07-29-日记
+            </a>
+          </div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/07/28/2026-07-28-%E6%97%A5%E8%AE%B0/" rel="next">
+              2026/07/28-日记
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>
