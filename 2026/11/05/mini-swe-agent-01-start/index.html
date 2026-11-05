@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>mini-SWE-agent 学习笔记 01：第一次运行与提示词</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "mini-SWE-agent 学习笔记 01：第一次运行与提示词",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">mini-SWE-agent 学习笔记 01：第一次运行与提示词</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-05 12:00</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/Python/" rel="tag">Python</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/mini-SWE-agent/" rel="tag">mini-SWE-agent</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p>最初运行 mini-SWE-agent 时，我把“配置”“启动任务”和“模型动作”混在一起。终端打印了很长的英文，配置看似已经写好，为什么还会调用 API？这篇先把这些入口概念分开。</p>
+<span id="more"></span>
+
+<h2 id="版本和模型"><a href="#版本和模型" class="headerlink" title="版本和模型"></a>版本和模型</h2><p>本轮学习使用 mini-swe-agent 2.4.6，配置名称为 <code>anthropic/kimi-for-coding</code>，实际服务是 Kimi Code。记录的是模型别名，没有固定可核实的底层模型快照。<code>anthropic/</code> 用于 LiteLLM 的协议适配，不能据此判断实际服务商。</p>
+<p>Kimi Code 与 Moonshot 开放平台的接入需要核对密钥所属产品和接口地址，不能仅凭密钥前缀判断。</p>
+<h2 id="配置写进文件，命令负责启动"><a href="#配置写进文件，命令负责启动" class="headerlink" title="配置写进文件，命令负责启动"></a>配置写进文件，命令负责启动</h2><p>YAML 内容应该保存在文件中，直接粘贴进 zsh 会出现 <code>command not found: model:</code>。共用配置类似：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">model:</span></span><br><span class="line">  <span class="attr">model_class:</span> <span class="string">litellm</span></span><br><span class="line">  <span class="attr">model_name:</span> <span class="string">anthropic/kimi-for-coding</span></span><br><span class="line">  <span class="attr">set_cache_control:</span> <span class="literal">null</span></span><br><span class="line">  <span class="attr">cost_tracking:</span> <span class="string">ignore_errors</span></span><br><span class="line">  <span class="attr">model_kwargs:</span></span><br><span class="line">    <span class="attr">api_base:</span> <span class="string">https://api.kimi.com/coding/</span></span><br><span class="line"><span class="attr">agent:</span></span><br><span class="line">  <span class="attr">step_limit:</span> <span class="number">12</span></span><br></pre></td></tr></table></figure>
+
+<p>凭据单独配置，不写进文章或任务文件。在独立练习目录启动：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mini \</span><br><span class="line">  -c mini.yaml \</span><br><span class="line">  -c ../kimi-code.yaml \</span><br><span class="line">  -o trajectory.json \</span><br><span class="line">  --exit-immediately \</span><br><span class="line">  -t <span class="string">&#x27;只在当前目录创建 hello.py，输出 Hello, mini-SWE-agent，运行验证后提交任务。&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>第二个配置路径要按自己的目录调整。<code>mini</code> 是运行程序，<code>-c</code> 只说明本次加载哪些配置，并不会变成“只配置”。后加载的配置覆盖同名字段，下次只输入 <code>mini</code> 不会自动记住此前所有参数。</p>
+<p><code>--exit-immediately</code> 省去提交后追加任务的询问。跳过逐条执行确认使用另一个参数 <code>-y</code>。每任务 12 步指模型请求次数，一次回复可以包含多个动作。</p>
+<p>费用计价失败时可能记为 0，因此不能把记录为 0 理解为没有实际额度消耗。</p>
+<h2 id="第一次为什么显示整段提示词"><a href="#第一次为什么显示整段提示词" class="headerlink" title="第一次为什么显示整段提示词"></a>第一次为什么显示整段提示词</h2><p>初始消息包括 system 的角色说明，以及 user 中渲染后的任务与操作说明。交互式 Agent 在添加消息时也打印它们，所以终端会显示这些正文。</p>
+<p><code>Recommended Workflow</code> 建议分析、复现、修改、验证和提交；<code>Command Execution Rules</code> 约束工具调用；命令示例帮助模型生成适合环境的操作。模板中的 <code>&#123;&#123;task&#125;&#125;</code> 和系统信息占位符会在运行时替换。</p>
+<p>不同任务会替换任务文字，配置也可以替换固定模板。终端打印的消息正文不等于完整 API 请求：工具定义通过独立的 <code>tools</code> 参数发送，模型参数另行处理，后续每轮还会增加新消息；服务端内部处理也无法从这些打印中完整得知。</p>
+<h2 id="第一次成功任务留下了什么"><a href="#第一次成功任务留下了什么" class="headerlink" title="第一次成功任务留下了什么"></a>第一次成功任务留下了什么</h2><p>那次轨迹记录了三次模型调用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">查看目录并创建 hello.py</span><br><span class="line">→ 执行 python3 hello.py</span><br><span class="line">→ 提出完成命令</span><br></pre></td></tr></table></figure>
+
+<p>工具观察记录了 <code>Hello, mini-SWE-agent</code>，程序返回 0，最终状态为 <code>Submitted</code>。验收要同时对照文件、实际输出和结束状态。</p>
+<p>完成命令是 Agent 的结束信号，不等于 Git commit。</p>
+<h2 id="读轨迹先看四处"><a href="#读轨迹先看四处" class="headerlink" title="读轨迹先看四处"></a>读轨迹先看四处</h2><table>
+<thead>
+<tr>
+<th>位置</th>
+<th>看什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>info</td>
+<td>版本、配置、统计和结束状态</td>
+</tr>
+<tr>
+<td>messages 的直接元素</td>
+<td>实际消息顺序</td>
+</tr>
+<tr>
+<td>assistant.extra.actions</td>
+<td>模型提出的命令</td>
+</tr>
+<tr>
+<td>tool 的 raw_output 和 returncode</td>
+<td>执行后真实观察</td>
+</tr>
+</tbody></table>
+<p>完整 API 响应可能在 extra.response 里重复保存，因此不要在整个 JSON 中数 role 的出现次数来判断对话轮数。</p>
+<hr>
+<a href="/Francis-olio/2026/11/05/mini-swe-agent-index/" title="mini-SWE-agent 学习系列：从跑通任务到追踪机制">系列目录</a> · <a href="/Francis-olio/2026/11/05/mini-swe-agent-02-loop/" title="mini-SWE-agent 学习笔记 02：从入口追到 Agent 循环">下一篇：从入口追到 Agent 循环</a>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev">
+            <i class="fa fa-chevron-left"></i>
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-index/" rel="prev">
+              mini-SWE-agent 学习系列：从跑通任务到追踪机制
+            </a>
+          </div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-02-loop/" rel="next">
+              mini-SWE-agent 学习笔记 02：从入口追到 Agent 循环
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>mini-SWE-agent 学习笔记 09：为什么测试失败，返回码却是零</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "mini-SWE-agent 学习笔记 09：为什么测试失败，返回码却是零",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">mini-SWE-agent 学习笔记 09：为什么测试失败，返回码却是零</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-05 12:00</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/Python/" rel="tag">Python</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/mini-SWE-agent/" rel="tag">mini-SWE-agent</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p>做完运行摘要后，有个现象一直让我困惑：pytest 明明失败，为什么“命令失败数”还是 0？沿着返回码的数据来源追踪，问题最终指向 Shell 的管道规则。</p>
+<p>截至本篇整理，我已经跑过默认管道实验，并在本机 Bash 手册中找到 pipefail 的说明；还没有完成项目接入，也没有实际核对开启 pipefail 后的实验结果。</p>
+<span id="more"></span>
+
+<h2 id="先明确谁在执行"><a href="#先明确谁在执行" class="headerlink" title="先明确谁在执行"></a>先明确谁在执行</h2><p>模型 API 返回工具调用，其中包含命令文字；Agent 提取动作，Environment 执行。比如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m pytest -q 2&gt;&amp;1 | <span class="built_in">tail</span> -20</span><br></pre></td></tr></table></figure>
+
+<p>pytest 运行测试，tail 显示最后 20 行。两个程序有各自的退出状态。</p>
+<h2 id="从摘要往回追"><a href="#从摘要往回追" class="headerlink" title="从摘要往回追"></a>从摘要往回追</h2><p><code>LocalEnvironment.execute()</code> 中：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">result = _run(command, cwd, os.environ | <span class="variable language_">self</span>.config.env, timeout <span class="keyword">or</span> <span class="variable language_">self</span>.config.timeout)</span><br><span class="line">output = &#123;<span class="string">&quot;output&quot;</span>: result.stdout, <span class="string">&quot;returncode&quot;</span>: result.returncode, <span class="string">&quot;exception_info&quot;</span>: <span class="string">&quot;&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>继续追到 <code>_run()</code>，发现使用 <code>subprocess.Popen(command, shell=True, ...)</code> 启动进程，最后使用 <code>process.returncode</code> 构造 CompletedProcess。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Shell 执行命令</span><br><span class="line">→ process.returncode</span><br><span class="line">→ result.returncode</span><br><span class="line">→ Environment 返回结果</span><br><span class="line">→ Agent 统计</span><br></pre></td></tr></table></figure>
+
+<p>先提出假设：Shell 是否已经返回了 0，后面只是照实记录？</p>
+<h2 id="拿掉-Agent-做最小实验"><a href="#拿掉-Agent-做最小实验" class="headerlink" title="拿掉 Agent 做最小实验"></a>拿掉 Agent 做最小实验</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">python - &lt;&lt;<span class="string">&#x27;PY&#x27;</span></span><br><span class="line">import subprocess</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> <span class="built_in">command</span> <span class="keyword">in</span> [<span class="string">&quot;false&quot;</span>, <span class="string">&quot;true&quot;</span>, <span class="string">&quot;false | true&quot;</span>]:</span><br><span class="line">    result = subprocess.run(<span class="built_in">command</span>, shell=True)</span><br><span class="line">    <span class="built_in">print</span>(f<span class="string">&quot;命令：&#123;command&#125;，返回码：&#123;result.returncode&#125;&quot;</span>)</span><br><span class="line">PY</span><br></pre></td></tr></table></figure>
+
+<p>实际结果：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">命令：false，返回码：1</span><br><span class="line">命令：true，返回码：0</span><br><span class="line">命令：false | true，返回码：0</span><br></pre></td></tr></table></figure>
+
+<p>false 必定失败，true 必定成功。这个现象在没有模型时也存在，研究范围因此缩小到 Shell 管道退出状态。</p>
+<p>输入多行命令时，我把结尾写成了 <code>PY&#39;</code>，终端一直出现 <code>heredoc&gt;</code>。结束标记必须单独一行写 <code>PY</code>，不带引号或空格；开头的 <code>&lt;&lt;&#39;PY&#39;</code> 才需要那对引号。</p>
+<h2 id="不知道-pipefail-时怎么查"><a href="#不知道-pipefail-时怎么查" class="headerlink" title="不知道 pipefail 时怎么查"></a>不知道 pipefail 时怎么查</h2><p>这次是助手先提出 pipefail，再带我查证的。对我更有价值的，是怎样在事先不知道名称的情况下找到它：</p>
+<ol>
+<li>发现失败与最终返回码不一致。</li>
+<li>用最小实验复现。</li>
+<li>问“管道最终返回码由谁决定”。</li>
+<li>查 Bash 手册的 Pipelines 部分。</li>
+<li>读到 pipefail，再查启用方法。</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">man bash</span><br></pre></td></tr></table></figure>
+
+<p>小写 g 回到开头，输入 <code>/pipefail</code> 回车搜索，n 找下一处，q 退出。若出现 Pattern not found，先回车关提示，再从开头搜索。</p>
+<p>本机手册说明：默认取最后一个命令的退出状态；启用 pipefail 后取管道位置上最右侧的非零状态，全部成功才返回 0。最右侧不是时间上最后退出。</p>
+<h2 id="下一步先预测，再验证"><a href="#下一步先预测，再验证" class="headerlink" title="下一步先预测，再验证"></a>下一步先预测，再验证</h2><p>下面是计划中的实验，尚未把它当作实际结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">python - &lt;&lt;<span class="string">&#x27;PY&#x27;</span></span><br><span class="line">import subprocess</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> setting <span class="keyword">in</span> [<span class="string">&quot;set +o pipefail&quot;</span>, <span class="string">&quot;set -o pipefail&quot;</span>]:</span><br><span class="line">    result = subprocess.run(</span><br><span class="line">        [<span class="string">&quot;bash&quot;</span>, <span class="string">&quot;-c&quot;</span>, f<span class="string">&quot;&#123;setting&#125;; false | true&quot;</span>]</span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(f<span class="string">&quot;设置：&#123;setting&#125;，返回码：&#123;result.returncode&#125;&quot;</span>)</span><br><span class="line">PY</span><br></pre></td></tr></table></figure>
+
+<p>预测关闭时为 0，启用时为 1。显式使用同一个 Bash，让两组只改变选项。</p>
+<p>POSIX 上 <code>shell=True</code> 默认使用 <code>/bin/sh</code>，不会自动使用当前交互终端的 zsh。这个行为可查 <a target="_blank" rel="noopener" href="https://docs.python.org/3/library/subprocess.html#subprocess.Popen">Python subprocess 文档</a>。</p>
+<h2 id="为什么不能马上改项目"><a href="#为什么不能马上改项目" class="headerlink" title="为什么不能马上改项目"></a>为什么不能马上改项目</h2><p>pipefail 改变管道的返回规则，不是仅仅增加一个日志字段。<code>程序 | head -5</code> 中，head 提前结束可能使上游遇到断管道，整条命令因此显示非零。还需要确认当前 Shell 支持哪些选项，以及失败统计究竟想衡量什么。</p>
+<p>它也不能解决所有返回码覆盖问题：<code>失败命令; echo ...</code> 是顺序命令，不能只靠 pipefail 保留前一个失败。</p>
+<p>另一种设计是记录各段返回码，但那是范围更大的实现。当前还没有修改 Environment。</p>
+<p>我想掌握的是这种定位能力：现象 → 最小实验 → 找到所属层 → 查对应机制 → 预测修改影响。到达 Shell 的知识边界时，就补管道、退出状态和子进程的知识。</p>
+<h2 id="资料入口"><a href="#资料入口" class="headerlink" title="资料入口"></a>资料入口</h2><ul>
+<li>本机 <code>man bash</code> 的 Pipelines 和 set 说明（本次实际查阅）。</li>
+<li><a target="_blank" rel="noopener" href="https://www.gnu.org/software/bash/manual/html_node/Pipelines.html">GNU Bash 手册：Pipelines</a>。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Ubi-olio/mini-swe-agent/blob/99b1836c/src/minisweagent/environments/local.py">本次版本的本地执行器</a>。</li>
+</ul>
+<hr>
+<a href="/Francis-olio/2026/11/05/mini-swe-agent-index/" title="mini-SWE-agent 学习系列：从跑通任务到追踪机制">系列目录</a> · <a href="/Francis-olio/2026/11/05/mini-swe-agent-08-evaluation/" title="mini-SWE-agent 学习笔记 08：建立八项任务的小型测评集">上一篇：建立八项任务的小型测评集</a>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev">
+            <i class="fa fa-chevron-left"></i>
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-08-evaluation/" rel="prev">
+              mini-SWE-agent 学习笔记 08：建立八项任务的小型测评集
+            </a>
+          </div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/07/29/2026-07-29-%E6%97%A5%E8%AE%B0/" rel="next">
+              2026-07-29-日记
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>

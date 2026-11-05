@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>mini-SWE-agent 学习笔记 03：模型接口与消息历史</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "mini-SWE-agent 学习笔记 03：模型接口与消息历史",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">mini-SWE-agent 学习笔记 03：模型接口与消息历史</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-05 12:00</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/Python/" rel="tag">Python</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/mini-SWE-agent/" rel="tag">mini-SWE-agent</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p>整理本次 mini-swe-agent 2.4.6 的源码阅读与实验记录。</p>
+<span id="more"></span>
+
+<p>学习目标：理解消息如何发送给模型、回复如何转换成动作，以及第二次调用相比第一次新增了什么信息。</p>
+<blockquote>
+<p>💡 <strong>主线：Model 提动作、Environment 执行、Agent 管循环。</strong></p>
+</blockquote>
+<h2 id="1-messages、message、response-和-role"><a href="#1-messages、message、response-和-role" class="headerlink" title="1. messages、message、response 和 role"></a>1. messages、message、response 和 role</h2><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>messages</code></td>
+<td>消息列表，保存对话历史</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>一条消息，通常是一个字典</td>
+</tr>
+<tr>
+<td><code>response</code></td>
+<td>一次模型 API 请求返回的完整结果，包含回复消息、token 用量等</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td>消息中的角色标签，用于区分这条消息来自哪里</td>
+</tr>
+</tbody></table>
+<p><code>response</code> 是完整响应；<code>assistant</code>、<code>tool</code> 是 <code>role</code> 的取值，不是与 response 并列的数据类型。</p>
+<table>
+<thead>
+<tr>
+<th>role</th>
+<th>表示什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>system</code></td>
+<td>系统角色和行为说明</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td>用户任务、补充要求，也可能是 mini 追加的纠正提示</td>
+</tr>
+<tr>
+<td><code>assistant</code></td>
+<td>模型生成的回复，可能包含工具调用</td>
+</tr>
+<tr>
+<td><code>tool</code></td>
+<td>工具执行后返回的结果</td>
+</tr>
+<tr>
+<td><code>exit</code></td>
+<td>mini 内部使用的结束消息标记</td>
+</tr>
+</tbody></table>
+<p>注意：<code>tool</code> 消息通常由环境提供原始结果，经模型适配层整理后，由 Agent 加入历史，不是模型自己生成的执行结果。</p>
+<h2 id="2-response-里面包含-assistant-消息"><a href="#2-response-里面包含-assistant-消息" class="headerlink" title="2. response 里面包含 assistant 消息"></a>2. response 里面包含 assistant 消息</h2><p>在当前 LiteLLM 的 Chat Completions 风格返回结构中，完整响应可简化为：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">response = &#123;</span><br><span class="line">    <span class="string">&quot;choices&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;message&quot;</span>: &#123;</span><br><span class="line">                <span class="string">&quot;role&quot;</span>: <span class="string">&quot;assistant&quot;</span>,</span><br><span class="line">                <span class="string">&quot;content&quot;</span>: <span class="string">&quot;我先查看当前目录。&quot;</span>,</span><br><span class="line">                <span class="string">&quot;tool_calls&quot;</span>: [...],</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="string">&quot;usage&quot;</span>: &#123;...&#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>mini 从中取出回复消息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">message = response.choices[<span class="number">0</span>].message.model_dump()</span><br></pre></td></tr></table></figure>
+
+<p><code>choices[0]</code> 表示第一个候选结果，<code>.message</code> 是其中的回复消息，<code>model_dump()</code> 将它转换为字典。</p>
+<p>源码：<a target="_blank" rel="noopener" href="https://github.com/Ubi-olio/mini-swe-agent/blob/99b1836c/src/minisweagent/models/litellm_model.py#L99">litellm_model.py：取出回复并补充记录</a>。</p>
+<h2 id="3-一条消息中的常见字段"><a href="#3-一条消息中的常见字段" class="headerlink" title="3. 一条消息中的常见字段"></a>3. 一条消息中的常见字段</h2><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>role</code></td>
+<td>消息角色</td>
+<td>mini 或模型接口</td>
+</tr>
+<tr>
+<td><code>content</code></td>
+<td>消息正文</td>
+<td>提示词、模型回复或执行结果</td>
+</tr>
+<tr>
+<td><code>tool_calls</code></td>
+<td>模型提出的结构化工具调用</td>
+<td>模型接口</td>
+</tr>
+<tr>
+<td><code>tool_call_id</code></td>
+<td>将工具结果关联到对应调用</td>
+<td>工具调用关联信息</td>
+</tr>
+<tr>
+<td><code>extra</code></td>
+<td>动作、费用、响应记录和时间戳等附加信息</td>
+<td>mini</td>
+</tr>
+</tbody></table>
+<p><code>self.messages</code> 定义为 <code>list[dict]</code>，并没有要求每条消息都包含完全一样的字段。</p>
+<h3 id="extra-中保存什么"><a href="#extra-中保存什么" class="headerlink" title="extra 中保存什么"></a>extra 中保存什么</h3><ul>
+<li><code>actions</code>：mini 从模型工具调用中解析出的执行清单。</li>
+<li><code>response</code>：完整模型响应的保存副本。</li>
+<li><code>cost</code>：本次记录的费用。</li>
+<li><code>timestamp</code>：时间戳。</li>
+<li>观察消息中的 <code>raw_output</code>：命令的原始输出文本。</li>
+</ul>
+<p>轨迹中的 <code>extra.response.choices[0].message</code> 会重复保存 assistant 消息。这不代表又调用了一次模型。查找消息顺序时，应看 <code>messages</code> 数组的直接元素，不要把嵌套响应里的 role 也算成新消息。</p>
+<p><code>reasoning_content</code>、<code>thinking_blocks</code> 是接口返回的思考相关字段，不保证展示模型全部内部过程。LiteLLM 可能在统一字段和 <code>provider_specific_fields</code> 中重复保留它们。</p>
+<h2 id="4-输入方向：历史消息如何发送给模型"><a href="#4-输入方向：历史消息如何发送给模型" class="headerlink" title="4. 输入方向：历史消息如何发送给模型"></a>4. 输入方向：历史消息如何发送给模型</h2><p>Agent 先将当前历史交给模型适配层：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">message = <span class="variable language_">self</span>.model.query(<span class="variable language_">self</span>.messages)</span><br></pre></td></tr></table></figure>
+
+<p>源码：<a target="_blank" rel="noopener" href="https://github.com/Ubi-olio/mini-swe-agent/blob/99b1836c/src/minisweagent/agents/default.py#L149">default.py：请求模型</a>。</p>
+<p>适配层整理消息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">prepared = [&#123;k: v <span class="keyword">for</span> k, v <span class="keyword">in</span> msg.items() <span class="keyword">if</span> k != <span class="string">&quot;extra&quot;</span>&#125; <span class="keyword">for</span> msg <span class="keyword">in</span> messages]</span><br></pre></td></tr></table></figure>
+
+<p>这段代码复制每条消息，去掉 mini 自己添加的 <code>extra</code>。原始历史中的记录仍然保留，不是从轨迹中删除。</p>
+<p>例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 本地记录</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;role&quot;</span>: <span class="string">&quot;assistant&quot;</span>,</span><br><span class="line">    <span class="string">&quot;content&quot;</span>: <span class="string">&quot;我先查看目录。&quot;</span>,</span><br><span class="line">    <span class="string">&quot;tool_calls&quot;</span>: [...],</span><br><span class="line">    <span class="string">&quot;extra&quot;</span>: &#123;<span class="string">&quot;actions&quot;</span>: [...], <span class="string">&quot;response&quot;</span>: &#123;...&#125;, <span class="string">&quot;cost&quot;</span>: <span class="number">0.0</span>&#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 发送前去掉 extra</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;role&quot;</span>: <span class="string">&quot;assistant&quot;</span>,</span><br><span class="line">    <span class="string">&quot;content&quot;</span>: <span class="string">&quot;我先查看目录。&quot;</span>,</span><br><span class="line">    <span class="string">&quot;tool_calls&quot;</span>: [...],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>适配层还会调整 Anthropic 思考块顺序，并按配置处理缓存标记。</p>
+<p>源码：<a target="_blank" rel="noopener" href="https://github.com/Ubi-olio/mini-swe-agent/blob/99b1836c/src/minisweagent/models/litellm_model.py#L76">litellm_model.py：整理请求消息</a>。</p>
+<p>最后交给 LiteLLM：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">litellm.completion(</span><br><span class="line">    model=<span class="variable language_">self</span>.config.model_name,</span><br><span class="line">    messages=messages,</span><br><span class="line">    tools=[BASH_TOOL],</span><br><span class="line">    **(<span class="variable language_">self</span>.config.model_kwargs | kwargs),</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>messages</code>：整理后的对话历史。</li>
+<li><code>tools</code>：bash 工具定义，包括名称、用途和参数格式。它是独立参数，不是一条 role 消息。</li>
+<li><code>model</code> 和其他参数：决定模型、协议、接口地址等。</li>
+</ul>
+<p>LiteLLM 再适配目标服务的请求格式。本次配置的 <code>anthropic/</code> 前缀用于选择协议，实际请求地址由 Kimi Code 的 <code>api_base</code> 指定。</p>
+<p>源码：<a target="_blank" rel="noopener" href="https://github.com/Ubi-olio/mini-swe-agent/blob/99b1836c/src/minisweagent/models/litellm_model.py#L64">litellm_model.py：发送请求</a>。</p>
+<h2 id="5-返回方向：模型回复如何变成动作"><a href="#5-返回方向：模型回复如何变成动作" class="headerlink" title="5. 返回方向：模型回复如何变成动作"></a>5. 返回方向：模型回复如何变成动作</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">actions = <span class="variable language_">self</span>._parse_actions(response)</span><br><span class="line">message = response.choices[<span class="number">0</span>].message.model_dump()</span><br><span class="line">message[<span class="string">&quot;extra&quot;</span>] = &#123;</span><br><span class="line">    <span class="string">&quot;actions&quot;</span>: actions,</span><br><span class="line">    <span class="string">&quot;response&quot;</span>: response.model_dump(),</span><br><span class="line">    **cost_output,</span><br><span class="line">    <span class="string">&quot;timestamp&quot;</span>: time.time(),</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> message</span><br></pre></td></tr></table></figure>
+
+<p>适配层先解析工具调用，再把动作和其他记录放入 extra。这时只是整理命令，还没有执行。</p>
+<p>Agent 收到消息后累计费用、加入历史，再安排执行动作。Environment 执行后返回 outputs，适配层将结果格式化为观察消息，由 Agent 加入历史。</p>
+<p>源码：<a target="_blank" rel="noopener" href="https://github.com/Ubi-olio/mini-swe-agent/blob/99b1836c/src/minisweagent/models/litellm_model.py#L89">litellm_model.py：解析和整理回复</a>、<a target="_blank" rel="noopener" href="https://github.com/Ubi-olio/mini-swe-agent/blob/99b1836c/src/minisweagent/agents/interactive.py#L124">interactive.py：执行动作并加入观察</a>。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">messages → 移除 extra → LiteLLM 请求 → response</span><br><span class="line">→ assistant 消息与 actions → Environment 执行</span><br><span class="line">→ tool 观察 → 加入 messages → 下一轮</span><br></pre></td></tr></table></figure>
+
+<h2 id="6-assistant-和-tool-如何配对"><a href="#6-assistant-和-tool-如何配对" class="headerlink" title="6. assistant 和 tool 如何配对"></a>6. assistant 和 tool 如何配对</h2><p>模型先返回 assistant 消息，提出调用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;role&quot;</span>: <span class="string">&quot;assistant&quot;</span>,</span><br><span class="line">    <span class="string">&quot;content&quot;</span>: <span class="string">&quot;我先查看当前目录。&quot;</span>,</span><br><span class="line">    <span class="string">&quot;tool_calls&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;id&quot;</span>: <span class="string">&quot;call_001&quot;</span>,</span><br><span class="line">            <span class="string">&quot;type&quot;</span>: <span class="string">&quot;function&quot;</span>,</span><br><span class="line">            <span class="string">&quot;function&quot;</span>: &#123;</span><br><span class="line">                <span class="string">&quot;name&quot;</span>: <span class="string">&quot;bash&quot;</span>,</span><br><span class="line">                <span class="string">&quot;arguments&quot;</span>: <span class="string">&#x27;&#123;&quot;command&quot;: &quot;ls -la &amp;&amp; pwd&quot;&#125;&#x27;</span>,</span><br><span class="line">            &#125;,</span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>命令执行后，观察消息类似：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;role&quot;</span>: <span class="string">&quot;tool&quot;</span>,</span><br><span class="line">    <span class="string">&quot;tool_call_id&quot;</span>: <span class="string">&quot;call_001&quot;</span>,</span><br><span class="line">    <span class="string">&quot;content&quot;</span>: <span class="string">&quot;文件列表和当前目录等执行结果&quot;</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>相同的调用编号将动作和结果关联起来。模型生成 response 时，命令尚未执行，因此本次 response 中不会已经包含该命令的实际执行结果；结果作为后续 tool 消息加入。</p>
+<p>一条 assistant 消息可以提出多个工具调用，对应多个 tool 消息。用户纠正时也会插入 user，因此消息并非永远严格交替。</p>
+<h2 id="7-验收：第二次调用新增了什么"><a href="#7-验收：第二次调用新增了什么" class="headerlink" title="7. 验收：第二次调用新增了什么"></a>7. 验收：第二次调用新增了什么</h2><p>以计算器任务的成功轨迹为例：</p>
+<table>
+<thead>
+<tr>
+<th>调用</th>
+<th>messages 内容</th>
+<th>另外提供的参数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一次</td>
+<td>system 角色提示、user 任务和操作说明</td>
+<td>bash 工具定义等</td>
+</tr>
+<tr>
+<td>第二次</td>
+<td>保留前两条，新增上一轮 assistant 回复和对应 tool 观察</td>
+<td>bash 工具定义等</td>
+</tr>
+</tbody></table>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">第一次调用前：</span><br><span class="line">system → user</span><br><span class="line"></span><br><span class="line">第一次回复并执行后，第二次调用前：</span><br><span class="line">system → user → assistant（ls -la &amp;&amp; pwd）→ tool（文件列表和目录）</span><br></pre></td></tr></table></figure>
+
+<p>新增信息分别由谁产生：</p>
+<ul>
+<li><strong>assistant 回复</strong>：由模型产生，适配层整理，Agent 加入历史。</li>
+<li><strong>tool 观察</strong>：由 Environment 产生原始结果，适配层整理，Agent 加入历史。</li>
+<li><strong>extra</strong>：mini 的本地记录，发送前移除，不是第二次全部发给模型的新内容。</li>
+</ul>
+<blockquote>
+<p><strong>验收结论：第二次调用保留最初的系统提示和任务，新增上一轮的 assistant 回复（含工具调用）及对应的 tool 观察。模型据此知道当前目录和文件列表，决定下一步读取代码。发送前适配层会移除每条消息的 extra。</strong></p>
+</blockquote>
+<h2 id="8-容易混淆的点"><a href="#8-容易混淆的点" class="headerlink" title="8. 容易混淆的点"></a>8. 容易混淆的点</h2><ul>
+<li><code>response</code> 是完整响应，assistant 是消息角色；两者不是并列角色。</li>
+<li><code>tool_calls</code> 是模型提出的操作，tool 消息是操作执行后的结果。</li>
+<li><code>raw_output</code> 可以是代码、测试结果或报错，不专指读取代码。</li>
+<li><code>content</code> 要结合 role 理解：assistant 的正文是模型回复，tool 的正文是执行观察。</li>
+<li><code>info.config</code> 中的模板含有占位符；messages 中的初始 user 消息是实际渲染后的内容。</li>
+<li>本次学习直接阅读已有轨迹和源码，不需要重新调用模型 API。</li>
+</ul>
+<hr>
+<a href="/Francis-olio/2026/11/05/mini-swe-agent-index/" title="mini-SWE-agent 学习系列：从跑通任务到追踪机制">系列目录</a> · <a href="/Francis-olio/2026/11/05/mini-swe-agent-02-loop/" title="mini-SWE-agent 学习笔记 02：从入口追到 Agent 循环">上一篇：从入口追到 Agent 循环</a> · <a href="/Francis-olio/2026/11/05/mini-swe-agent-04-environment/" title="mini-SWE-agent 学习笔记 04：命令执行、返回码与超时">下一篇：命令执行、返回码与超时</a>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev">
+            <i class="fa fa-chevron-left"></i>
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-02-loop/" rel="prev">
+              mini-SWE-agent 学习笔记 02：从入口追到 Agent 循环
+            </a>
+          </div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-04-environment/" rel="next">
+              mini-SWE-agent 学习笔记 04：命令执行、返回码与超时
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>

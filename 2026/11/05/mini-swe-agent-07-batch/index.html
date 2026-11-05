@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>mini-SWE-agent 学习笔记 07：运行摘要与批量任务</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "mini-SWE-agent 学习笔记 07：运行摘要与批量任务",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">mini-SWE-agent 学习笔记 07：运行摘要与批量任务</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-05 12:00</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/Python/" rel="tag">Python</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/mini-SWE-agent/" rel="tag">mini-SWE-agent</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p>整理本次 mini-swe-agent 2.4.6 的源码阅读与实验记录。</p>
+<span id="more"></span>
+
+<h2 id="从单次运行增加摘要功能"><a href="#从单次运行增加摘要功能" class="headerlink" title="从单次运行增加摘要功能"></a>从单次运行增加摘要功能</h2><p>在批量运行之前，我先给 Agent 增加了 <code>get_summary()</code>。Agent 已经持有消息历史、调用计数和结束消息，适合在这里计算摘要。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;steps&quot;</span>: <span class="variable language_">self</span>.n_calls,</span><br><span class="line">    <span class="string">&quot;failed_commands&quot;</span>: failed_commands,</span><br><span class="line">    <span class="string">&quot;exit_reason&quot;</span>: last_message.get(<span class="string">&quot;extra&quot;</span>, &#123;&#125;).get(<span class="string">&quot;exit_status&quot;</span>, <span class="string">&quot;&quot;</span>),</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>失败数遍历工具执行记录中的非零返回码，排除 <code>action was not executed</code> 的占位消息。超时产生的 -1 会计入，但完成信号后的占位 -1 不计入；相同数值不一定有相同含义。</p>
+<p><code>serialize()</code> 把对象当前状态整理成可保存的字典，在 <code>info</code> 中增加 <code>summary</code>，原来的 <code>model_stats</code> 仍记录费用和调用统计。运行入口在 <code>try/finally</code> 中打印摘要；finally 不会自动吞掉异常，也不覆盖创建对象之前的错误。</p>
+<p>成功与故意失败两类运行都核对了摘要。命令返回 2，而 Agent 按要求提交时，结束原因仍可以是 Submitted。其他状态包括 LimitsExceeded、TimeExceeded、RepeatedFormatError 和普通异常类型名。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Ubi-olio/mini-swe-agent/commit/99b1836c">核心功能提交 99b1836c</a> 保存了这次改动。下面继续记录如何复用单任务能力，写出外层批量入口。</p>
+<p>日期：2026-11-04</p>
+<h2 id="1-今天完成了什么"><a href="#1-今天完成了什么" class="headerlink" title="1. 今天完成了什么"></a>1. 今天完成了什么</h2><p>在上一阶段“单次运行摘要”的基础上，增加一个本地批量入口，依次运行多个任务。每个任务有独立工作目录和原始轨迹，每完成一项就更新汇总。</p>
+<p><strong>汇总用于快速比较，轨迹用于追查过程，任务是否完成还要对照验收条件。</strong></p>
+<ul>
+<li><code>批量入口 batch.py</code></li>
+<li><code>任务清单 tasks.json</code></li>
+<li><code>任务原始材料 fixtures</code></li>
+<li>本次完整汇总（本地记录）</li>
+</ul>
+<h2 id="2-为什么写一个新的运行入口"><a href="#2-为什么写一个新的运行入口" class="headerlink" title="2. 为什么写一个新的运行入口"></a>2. 为什么写一个新的运行入口</h2><p>Agent 已经会运行一个任务、保存轨迹和计算摘要。批量入口负责安排多个独立运行，无需重新实现 Agent 循环。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">batch.py 读取任务清单</span><br><span class="line">  → 创建本轮运行目录</span><br><span class="line">  → 为当前任务创建工作目录，复制材料</span><br><span class="line">  → 启动一个 mini 子进程，等待它结束</span><br><span class="line">  → 读取该任务的 trajectory.json</span><br><span class="line">  → 提取 info.summary，更新总汇总</span><br><span class="line">  → 继续下一个任务</span><br></pre></td></tr></table></figure>
+
+<p>当前是顺序运行，不是并行运行。</p>
+<h2 id="3-任务清单的结构"><a href="#3-任务清单的结构" class="headerlink" title="3. 任务清单的结构"></a>3. 任务清单的结构</h2><p>每项任务包含以下字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>唯一标识，同时作为任务目录名</td>
+</tr>
+<tr>
+<td><code>task</code></td>
+<td>传给模型的任务文字</td>
+</tr>
+<tr>
+<td><code>template</code></td>
+<td>可选；相对于任务清单所在目录的原始材料路径</td>
+</tr>
+<tr>
+<td><code>acceptance</code></td>
+<td>可选；供验收时对照的条件</td>
+</tr>
+</tbody></table>
+<p><code>acceptance</code> 被保存到汇总中；当前脚本不会自动执行这些验收条件。</p>
+<p>读取与检查发生在 <code>batch.py 第 11 行</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tasks_file = tasks_file.resolve()</span><br><span class="line">tasks = json.loads(tasks_file.read_text(encoding=<span class="string">&quot;utf-8&quot;</span>))</span><br></pre></td></tr></table></figure>
+
+<p><code>resolve()</code> 把路径转换为绝对路径。<code>read_text()</code> 读取文字，<code>json.loads()</code> 把 JSON 文字转换为 Python 列表和字典。</p>
+<p>检查 id 是否重复时，<code>set</code> 会去掉重复值；去重后长度变小，就说明有重复任务 id。</p>
+<p>当前使用自己编写的任务清单，id 应为简单目录名，例如 <code>sales-report</code>。脚本目前只检查重复，没有额外验证目录名。</p>
+<h2 id="4-怎样避免覆盖文件"><a href="#4-怎样避免覆盖文件" class="headerlink" title="4. 怎样避免覆盖文件"></a>4. 怎样避免覆盖文件</h2><p>在 <code>第 18 行</code>，用时间戳创建本轮目录；随后每项任务创建自己的子目录。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">runs/</span><br><span class="line">└── 20261104-211523-591784/</span><br><span class="line">    ├── success/trajectory.json</span><br><span class="line">    ├── failure/trajectory.json</span><br><span class="line">    ├── sales-report/</span><br><span class="line">    │   ├── orders.csv</span><br><span class="line">    │   ├── sales_report.py</span><br><span class="line">    │   ├── report.json</span><br><span class="line">    │   └── trajectory.json</span><br><span class="line">    ├── log-summary/…</span><br><span class="line">    ├── fix-pagination/…</span><br><span class="line">    └── summary.json</span><br></pre></td></tr></table></figure>
+
+<p><code>Path</code> 的 <code>/</code> 用于拼接路径。<code>shutil.copytree()</code> 把原始材料复制到任务目录，让每次从相同材料开始。</p>
+<p><code>cwd=task_dir</code> 设置子进程工作目录，但不是文件访问隔离机制。模型执行的命令仍可能访问其他路径；本次销售报表任务就曾使用 <code>/tmp</code> 验证其他输入。</p>
+<h2 id="5-怎样启动-mini-子进程"><a href="#5-怎样启动-mini-子进程" class="headerlink" title="5. 怎样启动 mini 子进程"></a>5. 怎样启动 mini 子进程</h2><p><code>第 33 行</code> 使用 <code>subprocess.run()</code>。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sys.executable</code></td>
+<td>使用运行批量脚本的同一个 Python</td>
+</tr>
+<tr>
+<td><code>-m minisweagent.run.mini</code></td>
+<td>从 Python 模块启动 mini</td>
+</tr>
+<tr>
+<td><code>-c mini.yaml</code></td>
+<td>加载基础配置</td>
+</tr>
+<tr>
+<td>第二个 <code>-c</code></td>
+<td>加载共用 Kimi 模型配置和每任务 12 步限制</td>
+</tr>
+<tr>
+<td><code>-o</code></td>
+<td>指定当前任务的独立轨迹路径</td>
+</tr>
+<tr>
+<td><code>-t</code></td>
+<td>指定当前任务文字</td>
+</tr>
+<tr>
+<td><code>-y</code></td>
+<td>自动执行模型动作，不逐条询问</td>
+</tr>
+<tr>
+<td><code>--exit-immediately</code></td>
+<td>提交结束后不再询问新任务</td>
+</tr>
+<tr>
+<td><code>cwd=task_dir</code></td>
+<td>在当前任务目录启动</td>
+</tr>
+<tr>
+<td><code>check=False</code></td>
+<td>子进程返回非零时，不因此抛出异常，可继续下一项</td>
+</tr>
+</tbody></table>
+<p><code>subprocess.run()</code> 会等当前子进程结束，再返回 <code>result</code>。所以读取 <code>result.returncode</code>、整理汇总的代码必须放在调用的右括号之后。</p>
+<p><code>check=False</code> 不表示所有异常都会忽略。例如启动进程本身失败、读取 JSON 失败，当前脚本仍可能中断。</p>
+<h2 id="6-两种返回码不要混淆"><a href="#6-两种返回码不要混淆" class="headerlink" title="6. 两种返回码不要混淆"></a>6. 两种返回码不要混淆</h2><table>
+<thead>
+<tr>
+<th>记录</th>
+<th>对应什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>工具消息中的 <code>returncode</code></td>
+<td>模型提出的那一段命令的执行结果</td>
+</tr>
+<tr>
+<td>汇总中的 <code>process_returncode</code></td>
+<td>整个 mini 子进程的退出结果</td>
+</tr>
+</tbody></table>
+<p>模型执行 <code>sys.exit(2)</code>，工具返回 2；模型随后正常提交，mini 子进程可以返回 0。</p>
+<p>因此，<code>process_returncode=0</code> 不代表每条命令成功，也不代表任务满足验收条件。</p>
+<h2 id="7-汇总怎样生成，怎样追溯"><a href="#7-汇总怎样生成，怎样追溯" class="headerlink" title="7. 汇总怎样生成，怎样追溯"></a>7. 汇总怎样生成，怎样追溯</h2><p><code>第 54 行开始</code>，为每个任务记录：</p>
+<ul>
+<li>任务 id、任务文字和验收条件。</li>
+<li>mini 进程返回码。</li>
+<li>相对于本轮目录的原始轨迹路径。</li>
+<li>从轨迹中读取的 <code>info.summary</code>。</li>
+<li>记录收集状态 <code>record_status</code>。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>record_status</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>collected</code></td>
+<td>找到轨迹，并读到非空的摘要字段</td>
+</tr>
+<tr>
+<td><code>missing_summary</code></td>
+<td>有轨迹，但没有摘要或摘要为 null</td>
+</tr>
+<tr>
+<td><code>missing_trajectory</code></td>
+<td>没有生成轨迹文件</td>
+</tr>
+</tbody></table>
+<p>这里的状态只描述记录是否收集成功，不是任务完成情况。</p>
+<p>每完成一个任务，先把记录加入 <code>results</code>，再将整个列表写入 <code>summary.json</code>。<code>ensure_ascii=False</code> 使中文直接显示，<code>indent=2</code> 让 JSON 更容易阅读。</p>
+<p>轨迹路径使用相对路径，例如 <code>sales-report/trajectory.json</code>。搬动整轮目录后，仍可根据汇总定位原始轨迹。汇总不替代原始轨迹，也不改写它。</p>
+<h2 id="8-本次运行结果"><a href="#8-本次运行结果" class="headerlink" title="8. 本次运行结果"></a>8. 本次运行结果</h2><p>本轮目录：<code>20261104-211523-591784</code>。</p>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th align="right">步数</th>
+<th align="right">命令失败数</th>
+<th>结束原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>成功命令（本地记录）</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td>Submitted</td>
+</tr>
+<tr>
+<td>故意失败（本地记录）</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td>Submitted</td>
+</tr>
+<tr>
+<td>销售报表（本地记录）</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td>Submitted</td>
+</tr>
+<tr>
+<td>日志统计（本地记录）</td>
+<td align="right">5</td>
+<td align="right">0</td>
+<td>Submitted</td>
+</tr>
+<tr>
+<td>分页修复（本地记录）</td>
+<td align="right">5</td>
+<td align="right">0</td>
+<td>Submitted</td>
+</tr>
+</tbody></table>
+<p>五项进程返回码均为 0，<code>record_status</code> 均为 <code>collected</code>。汇总摘要与各自轨迹中的摘要一致。</p>
+<p>核对的任务结果：</p>
+<ul>
+<li>销售报表：Notebook 数量 5、收入 62.50；Pen 数量 7、收入 8.40。</li>
+<li>日志统计：INFO&#x3D;3、WARNING&#x3D;1、ERROR&#x3D;2、invalid_lines&#x3D;3。</li>
+<li>分页修复：轨迹记录修复后 10 项测试通过。</li>
+<li>原始 <code>orders.csv</code>、<code>app.log</code> 和 <code>test_pagination.py</code> 与准备材料一致。</li>
+</ul>
+<p>以上不等同于全部边界条件都经过独立复验；本次批量功能的验收重点是记录汇总与追溯。</p>
+<h3 id="为什么分页测试失败过，命令失败数还是-0？"><a href="#为什么分页测试失败过，命令失败数还是-0？" class="headerlink" title="为什么分页测试失败过，命令失败数还是 0？"></a>为什么分页测试失败过，命令失败数还是 0？</h3><p>模型使用了类似命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m pytest -q 2&gt;&amp;1 | <span class="built_in">tail</span> -60</span><br></pre></td></tr></table></figure>
+
+<p>pytest 失败，但最后的 <code>tail</code> 成功，整段管道默认返回 0。现有摘要只统计工具记录的非零返回码，所以没有统计成失败。</p>
+<p><strong>“工具返回码为非零的命令数”不能完全代表“所有实际发生的测试失败数”。</strong> 这是目前统计规则的局限，本次没有修改它。单条命令超时返回的 -1 会计入失败；<code>action was not executed</code> 的占位记录则排除。</p>
+<h2 id="9-重新启动与中断"><a href="#9-重新启动与中断" class="headerlink" title="9. 重新启动与中断"></a>9. 重新启动与中断</h2><p>运行命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">python /path/to/mini-swe-agent/practice/day11/batch.py \</span><br><span class="line">  /path/to/mini-swe-agent/practice/day11/tasks.json</span><br></pre></td></tr></table></figure>
+
+<p>运行脚本会调用模型，按清单顺序自动执行任务。</p>
+<p>当前没有暂停恢复、跳过已完成任务或断点续跑功能。中断后，已写入的文件保留；当前任务可能尚未加入汇总。mini 会处理 Ctrl+C，可能进入用户交互，因此中断行为不等同于立即退出所有进程。</p>
+<p>重新启动会创建新的时间目录，从第一项重新开始。</p>
+<h2 id="10-本次写代码遇到的问题"><a href="#10-本次写代码遇到的问题" class="headerlink" title="10. 本次写代码遇到的问题"></a>10. 本次写代码遇到的问题</h2><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>原因与改法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tasks_filr</code> 与 <code>tasks_file</code> 不一致</td>
+<td>变量名称必须完全一致，否则 NameError</td>
+</tr>
+<tr>
+<td><code>for task in task</code></td>
+<td>应遍历整个列表 <code>tasks</code></td>
+</tr>
+<tr>
+<td>循环顶格</td>
+<td>函数内 4 空格，循环体内 8 空格</td>
+</tr>
+<tr>
+<td>字符串参数之间漏逗号</td>
+<td>相邻字符串可能被自动拼接，语法通过却参数错误</td>
+</tr>
+<tr>
+<td>把 <code>record</code> 写进 <code>subprocess.run()</code> 括号内</td>
+<td>先结束调用，再读取返回结果并汇总</td>
+</tr>
+<tr>
+<td>仍逐条询问动作</td>
+<td>需要给每个 mini 子进程传入 <code>-y</code></td>
+</tr>
+</tbody></table>
+<h2 id="11-修改功能时怎么定位"><a href="#11-修改功能时怎么定位" class="headerlink" title="11. 修改功能时怎么定位"></a>11. 修改功能时怎么定位</h2><p>本次需求是“安排多个任务并收集结果”，所以改运行入口层。单任务 Agent 的循环和摘要计算继续复用。</p>
+<p>以后要调整：</p>
+<ul>
+<li>任务内容、输入材料或验收条件：修改 <code>tasks.json</code> 和 <code>fixtures/</code>。</li>
+<li>批量顺序、目录或汇总字段：修改 <code>batch.py</code>。</li>
+<li>单任务摘要的计算规则：修改 Agent 的 <code>get_summary()</code>。</li>
+<li>命令执行或真实返回码收集方式：查看 Environment。</li>
+</ul>
+<p>本次没有自动评分、并行运行、自动恢复或自动提交到 GitHub。这些是后续可以分别设计的功能。</p>
+<hr>
+<a href="/Francis-olio/2026/11/05/mini-swe-agent-index/" title="mini-SWE-agent 学习系列：从跑通任务到追踪机制">系列目录</a> · <a href="/Francis-olio/2026/11/05/mini-swe-agent-06-failures/" title="mini-SWE-agent 学习笔记 06：区分环境、模型与任务问题">上一篇：区分环境、模型与任务问题</a> · <a href="/Francis-olio/2026/11/05/mini-swe-agent-08-evaluation/" title="mini-SWE-agent 学习笔记 08：建立八项任务的小型测评集">下一篇：建立八项任务的小型测评集</a>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev">
+            <i class="fa fa-chevron-left"></i>
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-05-prompts/" rel="prev">
+              mini-SWE-agent 学习笔记 05：只改一项提示词的对照实验
+            </a>
+          </div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-06-failures/" rel="next">
+              mini-SWE-agent 学习笔记 06：区分环境、模型与任务问题
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>mini-SWE-agent 学习笔记 05：只改一项提示词的对照实验</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "mini-SWE-agent 学习笔记 05：只改一项提示词的对照实验",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">mini-SWE-agent 学习笔记 05：只改一项提示词的对照实验</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-05 12:00</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/Python/" rel="tag">Python</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/mini-SWE-agent/" rel="tag">mini-SWE-agent</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p>整理本次 mini-swe-agent 2.4.6 的源码阅读与实验记录。</p>
+<span id="more"></span>
+
+<p>日期：2026-10-26</p>
+<h2 id="1-今天的目标"><a href="#1-今天的目标" class="headerlink" title="1. 今天的目标"></a>1. 今天的目标</h2><p>在相同任务与相同模型配置下，只修改一项提示词，比较行为、结果和消耗。</p>
+<p><strong>重点：判断 Agent 实际执行了什么，要对照动作与工具返回，不能只看模型说自己完成了。</strong></p>
+<p>实验文件：</p>
+<ul>
+<li>A 组轨迹（本地记录）</li>
+<li>B 组轨迹（本地记录）</li>
+<li><code>B 组提示词配置</code></li>
+<li><code>共用模型配置</code></li>
+</ul>
+<h2 id="2-相同的任务"><a href="#2-相同的任务" class="headerlink" title="2. 相同的任务"></a>2. 相同的任务</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">执行一次命令 python -c &quot;import sys; print(\&quot;failure demo\&quot;); sys.exit(2)&quot;。</span><br><span class="line">这是故意失败。观察输出和返回码后提交，不要修复或重试。</span><br><span class="line">不要读取凭据或环境变量。</span><br></pre></td></tr></table></figure>
+
+<p>任务要求的结果本来就是失败。这里要验证的是：Agent 能否执行一次、正确观察失败，然后按要求结束。</p>
+<h3 id="t-是什么意思？"><a href="#t-是什么意思？" class="headerlink" title="-t 是什么意思？"></a><code>-t</code> 是什么意思？</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-t <span class="string">&#x27;执行一次命令……&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>这是 <code>mini</code> 的任务参数，把引号中的文字作为任务交给模型。它本身不会直接执行文字里的 Python 命令。</p>
+<p>流程为：任务文字 → 模型提出动作 → 用户确认（confirm 模式）→ Environment 执行 → 返回观察 → 模型决定下一步。</p>
+<h3 id="Python-命令是什么意思？"><a href="#Python-命令是什么意思？" class="headerlink" title="Python 命令是什么意思？"></a>Python 命令是什么意思？</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -c <span class="string">&quot;import sys; print(\&quot;failure demo\&quot;); sys.exit(2)&quot;</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>python -c &quot;…&quot;</code></td>
+<td>直接执行引号内的 Python 代码，不需要创建 <code>.py</code> 文件</td>
+</tr>
+<tr>
+<td><code>import sys</code></td>
+<td>导入 Python 的 <code>sys</code> 模块</td>
+</tr>
+<tr>
+<td><code>print(&quot;failure demo&quot;)</code></td>
+<td>打印 <code>failure demo</code></td>
+</tr>
+<tr>
+<td><code>sys.exit(2)</code></td>
+<td>以返回码 2 结束 Python 进程，表示故意失败</td>
+</tr>
+<tr>
+<td><code>\&quot;</code></td>
+<td>在这条 shell 命令的双引号内部保留双引号</td>
+</tr>
+</tbody></table>
+<p>预期观察：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">output: failure demo</span><br><span class="line">returncode: 2</span><br></pre></td></tr></table></figure>
+
+<p>返回码 0 通常表示成功，非零通常表示失败。本实验明确要求返回 2，所以出现 2 符合任务要求。</p>
+<h2 id="3-A-和-B-只改了哪里？"><a href="#3-A-和-B-只改了哪里？" class="headerlink" title="3. A 和 B 只改了哪里？"></a>3. A 和 B 只改了哪里？</h2><p>两组都使用 <code>anthropic/kimi-for-coding</code>，加载相同的基础配置与模型配置。</p>
+<p>A 使用原版 <code>system_template</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">You are a helpful assistant that can interact with a computer.</span><br></pre></td></tr></table></figure>
+
+<p>B 在同一个配置字段中增加一句约束：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">When the user provides an exact command, execute it unchanged as a standalone action without adding other shell commands.</span><br></pre></td></tr></table></figure>
+
+<p>意思是：<strong>用户提供明确命令时，原样作为独立动作执行，不要追加其他 shell 命令。</strong></p>
+<p><code>prompt-b.yaml</code> 中写的是完整的新 <code>system_template</code>，因此需要保留原来的第一句。后加载的配置会覆盖这个字段。</p>
+<h2 id="4-实际行为有什么不同？"><a href="#4-实际行为有什么不同？" class="headerlink" title="4. 实际行为有什么不同？"></a>4. 实际行为有什么不同？</h2><p>A 在 Python 命令后追加了：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">; <span class="built_in">echo</span> <span class="string">&quot;RETURN_CODE=$?&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>$?</code> 读取上一条命令的返回码，因此打印出了 Python 的返回码 2。</p>
+<p>但是，整段 shell 命令最后执行的是 <code>echo</code>，它成功返回 0，所以 Environment 记录的是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">returncode: 0</span><br><span class="line">output: failure demo</span><br><span class="line">        RETURN_CODE=2</span><br></pre></td></tr></table></figure>
+
+<p><strong>Python 的返回码是 2；整段 shell 命令的返回码是 0。两者对应的执行对象不同。</strong></p>
+<p>B 没有追加 <code>echo</code>，Environment 直接得到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">returncode: 2</span><br><span class="line">output: failure demo</span><br></pre></td></tr></table></figure>
+
+<p>两组随后都提出完成命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT</span><br></pre></td></tr></table></figure>
+
+<p>Agent 识别这个完成标记，最终记录 <code>Submitted</code>。这里的“提交”表示结束 Agent 任务，不代表执行了 Git 提交。</p>
+<h2 id="5-对照结果与消耗"><a href="#5-对照结果与消耗" class="headerlink" title="5. 对照结果与消耗"></a>5. 对照结果与消耗</h2><table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>A：原版提示词</th>
+<th>B：增加独立执行约束</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>是否追加 shell 命令</td>
+<td>是，追加 <code>echo</code></td>
+<td>否</td>
+</tr>
+<tr>
+<td>故意失败的 Python 命令执行次数</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>工具记录的返回码</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr>
+<td>是否能从观察中看出 Python 失败</td>
+<td>能，输出中有 <code>RETURN_CODE=2</code></td>
+<td>能，<code>returncode</code> 直接为 2</td>
+</tr>
+<tr>
+<td>是否修复或重试</td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td>最终状态</td>
+<td><code>Submitted</code></td>
+<td><code>Submitted</code></td>
+</tr>
+<tr>
+<td>模型调用次数</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>输入 token 合计</td>
+<td>2107</td>
+<td>2866</td>
+</tr>
+<tr>
+<td>输出 token 合计</td>
+<td>306</td>
+<td>1021</td>
+</tr>
+<tr>
+<td>总 token</td>
+<td>2413</td>
+<td>3887</td>
+</tr>
+<tr>
+<td>轨迹记录的费用</td>
+<td>0.0，实际金额未确认</td>
+<td>0.0，实际金额未确认</td>
+</tr>
+</tbody></table>
+<p>token 数据来自各条顶层 <code>assistant</code> 消息的 <code>extra.response.usage</code>，逐次累加；不要把嵌套的重复记录再次计算。输入合计包含每次请求重新携带的历史消息。</p>
+<p>这次 B 比 A 多使用 1474 个 token。输出 token 可能包含推理 token，不能直接等同于屏幕上回复文字的长度。</p>
+<p>费用记录为 0 不足以证明免费。当前配置使用 <code>cost_tracking: ignore_errors</code>，费用计算失败时可能记录为 0；本次先比较调用次数和 token 消耗。</p>
+<h2 id="6-怎么从轨迹验收？"><a href="#6-怎么从轨迹验收？" class="headerlink" title="6. 怎么从轨迹验收？"></a>6. 怎么从轨迹验收？</h2><ol>
+<li>看初始 <code>system</code>、<code>user</code> 消息：确认提示词差异和任务内容。</li>
+<li>看顶层 <code>assistant.extra.actions</code>：确认模型提出了什么命令。</li>
+<li>看后续 <code>role: tool</code> 的 <code>content</code>：确认实际输出和返回码。</li>
+<li>看下一条 <code>assistant</code>：确认是否重试，以及如何结束。</li>
+<li>看 <code>info.exit_status</code>、<code>info.model_stats</code> 和各次 <code>usage</code>：核对结束状态与消耗。</li>
+</ol>
+<p>完成命令对应的工具消息中，两组都有 <code>returncode: -1</code> 和 <code>action was not executed</code>。这是完成信号被框架处理后留下的占位记录，不应当当成 Python 命令执行失败的返回码；应结合最终的 <code>Submitted</code> 判断。</p>
+<h2 id="7-今天能得出什么结论？"><a href="#7-今天能得出什么结论？" class="headerlink" title="7. 今天能得出什么结论？"></a>7. 今天能得出什么结论？</h2><p>本次 B 更符合“命令作为独立动作执行”的要求，工具返回码也直接保留了 Python 的失败状态。A 能看到失败，但追加命令改变了整段 shell 的返回码。</p>
+<p><strong>提示词可以约束模型如何组织动作；是否遵守，仍要查看实际轨迹。</strong></p>
+<p>这只是各跑一次的观察，不能保证以后 B 都这样执行，也不能说明增加这句话必然增加 token。两组模型名称一致，但记录的是模型别名，没有固定到可核实的底层模型快照。</p>
+<hr>
+<a href="/Francis-olio/2026/11/05/mini-swe-agent-index/" title="mini-SWE-agent 学习系列：从跑通任务到追踪机制">系列目录</a> · <a href="/Francis-olio/2026/11/05/mini-swe-agent-04-environment/" title="mini-SWE-agent 学习笔记 04：命令执行、返回码与超时">上一篇：命令执行、返回码与超时</a> · <a href="/Francis-olio/2026/11/05/mini-swe-agent-06-failures/" title="mini-SWE-agent 学习笔记 06：区分环境、模型与任务问题">下一篇：区分环境、模型与任务问题</a>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev">
+            <i class="fa fa-chevron-left"></i>
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-04-environment/" rel="prev">
+              mini-SWE-agent 学习笔记 04：命令执行、返回码与超时
+            </a>
+          </div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-07-batch/" rel="next">
+              mini-SWE-agent 学习笔记 07：运行摘要与批量任务
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>

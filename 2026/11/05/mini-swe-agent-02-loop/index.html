@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>mini-SWE-agent 学习笔记 02：从入口追到 Agent 循环</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "mini-SWE-agent 学习笔记 02：从入口追到 Agent 循环",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">mini-SWE-agent 学习笔记 02：从入口追到 Agent 循环</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-05 12:00</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/Python/" rel="tag">Python</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/mini-SWE-agent/" rel="tag">mini-SWE-agent</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p>整理本次 mini-swe-agent 2.4.6 的源码阅读与实验记录。</p>
+<span id="more"></span>
+
+<p>学习目标：解释任务怎样启动、每轮怎样请求模型和执行动作，以及什么情况下继续或结束。本文对应交互式代理和本地执行环境。</p>
+<blockquote>
+<p>💡 <strong>主线：Model 提动作、Environment 执行、Agent 管循环</strong></p>
+</blockquote>
+<blockquote>
+<p>代码片段用于阅读，不要直接粘贴到 shell 终端执行。</p>
+</blockquote>
+<h2 id="1-从-mini-命令进入-main"><a href="#1-从-mini-命令进入-main" class="headerlink" title="1. 从 mini 命令进入 main()"></a>1. 从 mini 命令进入 main()</h2><p><code>pyproject.toml</code> 注册命令入口：</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mini</span> = <span class="string">&quot;minisweagent.run.mini:app&quot;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mini → Typer main() → 合并配置与任务 → 创建 Model / Environment / Agent → agent.run(task)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>run/mini.py</code></td>
+<td>加载配置、取得任务、组装对象</td>
+</tr>
+<tr>
+<td><code>agents/default.py</code></td>
+<td>核心循环、预算检查、消息历史、轨迹保存</td>
+</tr>
+<tr>
+<td><code>agents/interactive.py</code></td>
+<td>打印消息、确认命令、处理中断和继续询问</td>
+</tr>
+<tr>
+<td><code>models/litellm_model.py</code></td>
+<td>调用模型、解析工具调用、整理观察消息</td>
+</tr>
+<tr>
+<td><code>environments/local.py</code></td>
+<td>在本机执行命令，检测完成信号</td>
+</tr>
+<tr>
+<td><code>exceptions.py</code></td>
+<td>定义完成、超限、格式错误等流程控制信号</td>
+</tr>
+</tbody></table>
+<p><code>default_type=&quot;interactive&quot;</code> 表示：配置未指定 <code>agent_class</code> 时，默认创建 <code>InteractiveAgent</code>。</p>
+<p><code>-c</code> 指定本次启动读取的配置，下次单独运行 <code>mini</code> 不会自动记住这些参数。<code>--exit-immediately</code> 设置 <code>confirm_exit=False</code>，省去完成后追加任务的询问，不会跳过执行前确认。</p>
+<h2 id="2-self、父类与子类"><a href="#2-self、父类与子类" class="headerlink" title="2. self、父类与子类"></a>2. self、父类与子类</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">InteractiveAgent</span>(<span class="title class_ inherited__">DefaultAgent</span>):</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+
+<p><code>InteractiveAgent</code> 继承核心流程，并重写部分方法增加交互。父类和子类方法操作的是同一个对象。</p>
+<ul>
+<li><code>self</code>：实际调用方法的对象，本次是创建出的交互式代理。</li>
+<li><code>self.xxx()</code>：从对象的类开始找方法，优先使用子类重写的版本。</li>
+<li><code>super().xxx()</code>：从父类方向找方法，复用父类实现；<code>self</code> 仍是原来的对象。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>DefaultAgent</th>
+<th>InteractiveAgent</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>run()</code></td>
+<td>定义主循环</td>
+<td>直接继承</td>
+</tr>
+<tr>
+<td><code>step()</code></td>
+<td>请求模型，再执行动作</td>
+<td>打印分隔线、调用父类步骤、处理中断</td>
+</tr>
+<tr>
+<td><code>query()</code></td>
+<td>检查限制、调用模型、记录回复</td>
+<td>增加人工模式、等待提示、超限询问</td>
+</tr>
+<tr>
+<td><code>execute_actions()</code></td>
+<td>执行动作并加入观察</td>
+<td>增加执行确认和完成时询问</td>
+</tr>
+<tr>
+<td><code>add_messages()</code></td>
+<td>添加消息历史</td>
+<td>先打印，再调用父类添加历史</td>
+</tr>
+<tr>
+<td><code>save()</code></td>
+<td>保存轨迹</td>
+<td>直接继承</td>
+</tr>
+</tbody></table>
+<p>所以调用路线可能在两个文件之间切换：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">DefaultAgent.run()</span><br><span class="line">  → InteractiveAgent.step()</span><br><span class="line">  → DefaultAgent.step()</span><br><span class="line">  → InteractiveAgent.query()</span><br><span class="line">  → DefaultAgent.query()</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-对象属性与消息历史"><a href="#3-对象属性与消息历史" class="headerlink" title="3. 对象属性与消息历史"></a>3. 对象属性与消息历史</h2><p>初始化时的核心数据是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">self</span>.model = model</span><br><span class="line"><span class="variable language_">self</span>.env = env</span><br><span class="line"><span class="variable language_">self</span>.messages: <span class="built_in">list</span>[<span class="built_in">dict</span>] = []</span><br></pre></td></tr></table></figure>
+
+<p><code>model</code> 是传入参数，<code>self.model</code> 是保存在代理对象上的属性。<code>self.messages</code> 保存消息历史，通过 <code>add_messages()</code> 中的 <code>extend()</code> 追加。</p>
+<p>列表元素是字典，但没有要求每条消息都具有相同字段；具体格式取决于模型实现和消息用途。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+<th>主要来源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>role</code></td>
+<td>消息角色，如 system、user、assistant、tool</td>
+<td>mini 或模型接口</td>
+</tr>
+<tr>
+<td><code>content</code></td>
+<td>消息正文</td>
+<td>提示词、模型回复或执行结果</td>
+</tr>
+<tr>
+<td><code>tool_calls</code></td>
+<td>模型提出的工具调用</td>
+<td>模型接口</td>
+</tr>
+<tr>
+<td><code>tool_call_id</code></td>
+<td>将结果关联到对应工具调用</td>
+<td>工具调用关联信息</td>
+</tr>
+<tr>
+<td><code>extra</code></td>
+<td>动作、费用、时间戳等附加记录</td>
+<td>mini</td>
+</tr>
+</tbody></table>
+<p><code>extra.actions</code> 是解析后的动作，<code>extra.response</code> 保存模型响应，观察消息的 <code>extra.raw_output</code> 保存原始命令输出。重复保存的响应字段不代表发生了额外调用。</p>
+<p>当前 LiteLLM 实现发送请求前会去掉消息中的 <code>extra</code>，工具定义另外通过 API 的 <code>tools</code> 参数发送。<code>info.config</code> 是配置记录，不会全部直接发给模型。</p>
+<h2 id="4-run-与单轮执行"><a href="#4-run-与单轮执行" class="headerlink" title="4. run() 与单轮执行"></a>4. run() 与单轮执行</h2><p>交互式代理继承 <code>DefaultAgent.run()</code>。它先渲染模板，添加初始 system、user 消息，再进入循环。</p>
+<p>正常路径可简化为：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="variable language_">self</span>.step()</span><br><span class="line">    <span class="variable language_">self</span>.save(<span class="variable language_">self</span>.config.output_path)</span><br><span class="line">    <span class="keyword">if</span> <span class="variable language_">self</span>.messages[-<span class="number">1</span>].get(<span class="string">&quot;role&quot;</span>) == <span class="string">&quot;exit&quot;</span>:</span><br><span class="line">        <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+
+<p>实际源码把保存放在 <code>finally</code> 中，正常执行或异常发生后都会尝试保存。<strong>finally 本身不是终止条件。</strong> 普通异常还可能向外传播，直接离开函数。</p>
+<p>交互式 <code>step()</code> 打印分隔线，调用父类方法，并捕获 Control + C 引起的 <code>KeyboardInterrupt</code>。父类方法是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">step</span>(<span class="params">self</span>) -&gt; <span class="built_in">list</span>[<span class="built_in">dict</span>]:</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">self</span>.execute_actions(<span class="variable language_">self</span>.query())</span><br></pre></td></tr></table></figure>
+
+<p>先计算参数 <code>self.query()</code>，再将回复交给 <code>self.execute_actions()</code>。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">run() → InteractiveAgent.step() → DefaultAgent.step()</span><br><span class="line">→ query() → execute_actions() → 保存轨迹</span><br><span class="line">→ 最后一条为 exit：结束；否则继续</span><br></pre></td></tr></table></figure>
+
+<p>此图是正常路径；异常会进入后文的专门分支。</p>
+<h2 id="5-query-：检查预算并请求模型"><a href="#5-query-：检查预算并请求模型" class="headerlink" title="5. query()：检查预算并请求模型"></a>5. query()：检查预算并请求模型</h2><p>确认模式下，交互式 <code>query()</code> 显示等待提示，再调用父类 <code>query()</code>。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">检查次数、费用与时间 → 计数加一 → model.query(messages) → 记录回复和费用</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>限制为 0 表示关闭该项限制。</li>
+<li><code>step_limit=12</code> 时，已经尝试 12 次请求后阻止下一次请求；一次回复可以包含多个动作。</li>
+<li>费用在请求前检查、回复后累计，最后一次请求可能使累计费用超过阈值。</li>
+<li>Kimi Code 配置使用 <code>cost_tracking: ignore_errors</code>，无法计价时记录为 0。不能据此认为没有消耗额度，也不能依赖美元限制控制未计价消耗。</li>
+<li>时间限制也是请求前检查，不会在到时的一瞬间中断正在执行的请求或命令。</li>
+</ul>
+<h2 id="6-execute-actions-：确认、执行与观察"><a href="#6-execute-actions-：确认、执行与观察" class="headerlink" title="6. execute_actions()：确认、执行与观察"></a>6. execute_actions()：确认、执行与观察</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">取得 actions → 按模式确认 → env.execute(action)</span><br><span class="line">→ 整理 outputs 为观察 → 加入 messages → 返回循环</span><br></pre></td></tr></table></figure>
+
+<p><code>confirm</code> 模式下，未匹配白名单的动作需要确认；<code>yolo</code> 模式下不询问。拒绝命令或按 Control + C 后补充指令，通常是加入用户消息后继续，不等于终止任务。</p>
+<p>命令失败、pytest 测试失败通常作为观察返回，供模型修复，不会仅因返回码非零而结束任务。</p>
+<h2 id="7-正常完成：Submitted-如何到达-break"><a href="#7-正常完成：Submitted-如何到达-break" class="headerlink" title="7. 正常完成：Submitted 如何到达 break"></a>7. 正常完成：Submitted 如何到达 break</h2><p>本地环境执行命令后调用 <code>_check_finished(output)</code>。输出去掉开头空白后，第一行等于完成信号，且返回码为 0，才触发 <code>Submitted</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">完成标记且返回码为 0 → Submitted → 交互代理可询问追加任务</span><br><span class="line">→ run() 加入 exit → 保存 → break</span><br></pre></td></tr></table></figure>
+
+<p><code>Submitted</code> 是 <code>InterruptAgentFlow</code> 的子类，用异常机制传递完成信号。<code>Submitted</code> 说明代理已提交，不保证代码正确，仍需独立验收。</p>
+<h2 id="8-超限后的继续与结束"><a href="#8-超限后的继续与结束" class="headerlink" title="8. 超限后的继续与结束"></a>8. 超限后的继续与结束</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">次数或费用超限 → 交互终端可询问新限制；非交互终端结束</span><br><span class="line">时间超限 → 结束</span><br></pre></td></tr></table></figure>
+
+<p>达到 12 次后出现 <code>New step limit:</code>，是交互式代理在询问是否调整预算。时间超限不会进入这个询问。</p>
+<h2 id="9-格式错误与普通异常"><a href="#9-格式错误与普通异常" class="headerlink" title="9. 格式错误与普通异常"></a>9. 格式错误与普通异常</h2><p><code>FormatError</code> 指模型没有正确提供工具调用，例如没有工具调用、工具未知或缺少 command 参数，不是 pytest 测试失败。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">格式错误 → 连续计数加一</span><br><span class="line">未超限：加入纠正提示继续；达到上限：RepeatedFormatError → 保存并结束</span><br></pre></td></tr></table></figure>
+
+<p>默认连续上限为 3，正常执行一轮后计数清零。设为 0 则关闭连续错误限制，其他预算仍可生效。</p>
+<p>未处理的普通异常，例如 API 认证失败，由 <code>run()</code> 记录并重新抛出：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">    <span class="variable language_">self</span>.handle_uncaught_exception(e)</span><br><span class="line">    <span class="keyword">raise</span></span><br><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    <span class="variable language_">self</span>.save(<span class="variable language_">self</span>.config.output_path)</span><br></pre></td></tr></table></figure>
+
+<p>程序先记录异常，执行 finally 尝试保存，再让异常向外传播。此路径直接离开 run，不经过末尾的 break 判断。</p>
+<h2 id="10-继续与终止条件速查"><a href="#10-继续与终止条件速查" class="headerlink" title="10. 继续与终止条件速查"></a>10. 继续与终止条件速查</h2><table>
+<thead>
+<tr>
+<th>情况</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>普通动作完成或命令失败</td>
+<td>加入观察，继续循环</td>
+</tr>
+<tr>
+<td>用户拒绝命令、补充纠正</td>
+<td>加入用户消息，通常继续循环</td>
+</tr>
+<tr>
+<td>收到完成信号</td>
+<td>结束；启用结束确认时也可追加任务</td>
+</tr>
+<tr>
+<td>调用次数或费用超限</td>
+<td>交互终端可调整限制，否则结束</td>
+</tr>
+<tr>
+<td>时间超限</td>
+<td>结束</td>
+</tr>
+<tr>
+<td>格式错误未达到连续上限</td>
+<td>加入纠正提示，继续</td>
+</tr>
+<tr>
+<td>连续格式错误达到上限</td>
+<td>以 RepeatedFormatError 结束</td>
+</tr>
+<tr>
+<td>未处理的普通异常</td>
+<td>记录、保存后抛出，异常退出</td>
+</tr>
+</tbody></table>
+<h2 id="11-验收：解释三条实际路径"><a href="#11-验收：解释三条实际路径" class="headerlink" title="11. 验收：解释三条实际路径"></a>11. 验收：解释三条实际路径</h2><ol>
+<li><strong>正常完成</strong>：入口 → 组装对象 → run 循环 → query → 执行动作 → 观察 → 完成信号 → Submitted → exit 消息 → 保存 → break。</li>
+<li><strong>达到 12 次限制</strong>：query 检查 → LimitsExceeded → 交互代理询问新限制 → 重新检查；非交互终端则保存后结束。</li>
+<li><strong>API 认证失败</strong>：model.query 抛出认证异常 → run 记录异常 → finally 保存 → 异常向外传播。</li>
+</ol>
+<p>阅读源码时，区分模型回复、动作命令、环境观察和 Agent 流程控制。判断任务是否完成，还要对照文件内容与独立测试结果。</p>
+<hr>
+<a href="/Francis-olio/2026/11/05/mini-swe-agent-index/" title="mini-SWE-agent 学习系列：从跑通任务到追踪机制">系列目录</a> · <a href="/Francis-olio/2026/11/05/mini-swe-agent-01-start/" title="mini-SWE-agent 学习笔记 01：第一次运行与提示词">上一篇：第一次运行与提示词</a> · <a href="/Francis-olio/2026/11/05/mini-swe-agent-03-messages/" title="mini-SWE-agent 学习笔记 03：模型接口与消息历史">下一篇：模型接口与消息历史</a>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev">
+            <i class="fa fa-chevron-left"></i>
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-01-start/" rel="prev">
+              mini-SWE-agent 学习笔记 01：第一次运行与提示词
+            </a>
+          </div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-03-messages/" rel="next">
+              mini-SWE-agent 学习笔记 03：模型接口与消息历史
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>
