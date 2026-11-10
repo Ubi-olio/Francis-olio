@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>Agent 论文阅读笔记：从经验记忆到具身执行</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "Agent 论文阅读笔记：从经验记忆到具身执行",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">Agent 论文阅读笔记：从经验记忆到具身执行</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-10 00:00</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/%E5%85%B7%E8%BA%AB%E6%99%BA%E8%83%BD/" rel="tag">具身智能</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="tag">论文笔记</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p>这轮阅读从一个问题开始：<strong>Agent 做错一次以后，怎样让下次做得更好？</strong> 读到具身智能，又多了一个问题：<strong>模型选对了动作，机器人就真的做得到吗？</strong></p>
+<span id="more"></span>
+
+<h2 id="从当前观察到跨任务经验"><a href="#从当前观察到跨任务经验" class="headerlink" title="从当前观察到跨任务经验"></a>从当前观察到跨任务经验</h2><table>
+<thead>
+<tr>
+<th>论文</th>
+<th>方法</th>
+<th>经验怎么用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2210.03629">ReAct</a></td>
+<td>交替进行推理、行动和观察</td>
+<td>根据本次执行的观察调整下一步，核心方法没有跨任务经验库</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2303.11366">Reflexion</a></td>
+<td>根据执行记录和反馈生成文字反思</td>
+<td>将教训放进下一次输入，主要帮助同一任务的重试</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2308.10144">ExpeL</a></td>
+<td>从多个任务的成功与失败中提炼规则，并保留成功轨迹</td>
+<td>新任务来了，检索相似的成功轨迹作为示例，同时给模型提供归纳好的规则</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2403.08978">AutoGuide</a></td>
+<td>给经验规则写上适用条件</td>
+<td>根据当前执行情境选规则；这个「经验标签」描述的是何时该用，而不只是经验属于哪一类</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.16291">Voyager</a></td>
+<td>在 Minecraft 中自主提出任务，用执行反馈修正代码</td>
+<td>把验证成功的程序存为技能，之后可以检索和组合</td>
+</tr>
+</tbody></table>
+<p>用「错题本」来记，<strong>Reflexion 是同一题的重试笔记，ExpeL 是跨任务的经验库，AutoGuide 进一步判断眼下该翻哪一条。</strong> Voyager 保存的是可调用的程序，复用的单位变成了技能。</p>
+<p>从 harness 的角度看，RAG 是其中的检索环节：根据当前输入找到相关内容，再交给模型使用。它并不决定经验写成什么、什么时候写入、检索结果该如何执行。这些是系统设计的其他环节。</p>
+<h2 id="从写出步骤到真的执行"><a href="#从写出步骤到真的执行" class="headerlink" title="从写出步骤到真的执行"></a>从写出步骤到真的执行</h2><table>
+<thead>
+<tr>
+<th>论文</th>
+<th>研究重点</th>
+<th>执行的边界</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2306.15724">REFLECT</a></td>
+<td>把视觉、声音等执行记录整理成分层摘要，定位失败，再据此生成补救计划</td>
+<td>回看的是当前任务日志，主要解决「怎么知道刚才哪里错了」</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2310.15127">HELPER</a></td>
+<td>用对话和可用的失败反馈检索「语言—程序」案例，让模型生成动作程序</td>
+<td>程序在 TEACh 仿真中调用已有动作接口；要改变场景状态才算完成，但接口抽象掉了机械臂的精细操作</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2204.01691">SayCan</a></td>
+<td>语言模型评估技能对任务是否有用，技能价值函数估计当前能否做成，两者结合选择下一步</td>
+<td>在真实机器人上组合已有技能。杯子换位置、夹爪怎么对准，仍由底层执行策略处理</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2207.05608">Inner Monologue</a></td>
+<td>将技能是否成功、当前场景或问答结果转成文字，补进规划器的上下文</td>
+<td>用执行后的反馈重试或改计划；底层动作仍由已有技能执行</td>
+</tr>
+</tbody></table>
+<p>最容易混淆的是<strong>任务步骤和控制动作</strong>。「拿起杯子」是一个任务步骤；夹爪往哪里移、旋转多少、什么时候闭合，才是控制动作。预训练的抓取技能可以根据当前观察调整，并不等于回放一条固定轨迹。VLA 可以直接从观察和指令生成控制动作，也可以作为高层规划器下面的执行模块。即使模型不显式列步骤，能否独立完成长任务仍要看实验。</p>
+<p>另一条支线是 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2310.04406">LATS</a>：它把当前任务的尝试组织成搜索树，用评价和反馈选择下一条值得探索的行动路径。读它时可以留意：多试几条路带来的收益，是否值得额外的模型调用与执行成本。</p>
+<h2 id="SayCan-怎么判断「现在做得到」？"><a href="#SayCan-怎么判断「现在做得到」？" class="headerlink" title="SayCan 怎么判断「现在做得到」？"></a>SayCan 怎么判断「现在做得到」？</h2><p>SayCan 给每个候选技能打两个分：<strong>语言模型判断这一步对任务有多合适；技能价值函数根据当前观测，估计从现在开始执行这项技能有多可能成功。</strong> 两个分数相乘，选分数最高的技能执行。</p>
+<p>价值函数是从机器人执行轨迹中学出来的。训练时，一个技能完成给 1，未完成给 0；在不折扣、只在结束时给奖励的情况下，预期奖励就对应成功概率。实际用到的是学出来的估计值。比如用户洒了饮料，语言模型可能倾向于「拿起海绵」，但如果当前状态下这个技能的可行性分很低，系统可以先选「找海绵」。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2204.01691#S3">SayCan 原文 §2–4</a> · <a target="_blank" rel="noopener" href="https://say-can.github.io/#approach">海绵示例</a></p>
+<p>这也区分了三件事：<strong>该不该做、现在有多可能做成、刚才到底做成了没有。</strong> 前两项是 SayCan 选技能时用的信号；最后一项是 Inner Monologue 加回规划器的执行反馈。论文的真实厨房实验将两套机制结合：即使抓取的预估分很高，实际抓空后，规划器仍可根据反馈重试或改计划。<a target="_blank" rel="noopener" href="https://proceedings.mlr.press/v205/huang23c/huang23c.pdf">Inner Monologue §4.3</a></p>
+<h2 id="同样是失败反馈，各篇论文改了什么？"><a href="#同样是失败反馈，各篇论文改了什么？" class="headerlink" title="同样是失败反馈，各篇论文改了什么？"></a>同样是失败反馈，各篇论文改了什么？</h2><p>用「把杯子放到托盘上，但抓取失败」作一个简化对照：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>失败信息接下来用在哪里？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Inner Monologue</strong></td>
+<td>把「抓取失败」和可用的场景信息交给规划器，调整当前任务的下一步</td>
+</tr>
+<tr>
+<td><strong>REFLECT</strong></td>
+<td>回看本次执行的感知证据，区分「没抓住」和「抓住后又掉了」，再据此补救</td>
+</tr>
+<tr>
+<td><strong>HELPER</strong></td>
+<td>用失败子目标和反馈检索已有纠错案例，参考案例生成当前的修正程序</td>
+</tr>
+<tr>
+<td><strong>Reflexion</strong></td>
+<td>把失败总结成「抓完先确认手里有杯子」这样的文字笔记，带到同一任务的下一轮</td>
+</tr>
+<tr>
+<td><strong>ExpeL &#x2F; AutoGuide</strong></td>
+<td>从多次经历里提炼可跨任务复用的规则；AutoGuide 还为规则写明适用情境，方便执行中选择</td>
+</tr>
+</tbody></table>
+<p>这里最容易混淆的是<strong>知道失败、解释失败、从失败中积累经验</strong>。三件事可以同时做，但解决的是不同问题。如果机器人每次都夹偏，给规划器更多反馈可以帮助它改变尝试方式；要证明抓取本身变好了，还得看底层策略有没有改变，并在真实执行中验证。</p>
+<h2 id="下次读论文时的两个问题"><a href="#下次读论文时的两个问题" class="headerlink" title="下次读论文时的两个问题"></a>下次读论文时的两个问题</h2><ol>
+<li><strong>经验到底怎么复用？</strong> 看它存的是执行日志、失败教训、带适用条件的规则，还是可执行技能；再看检索发生在重试时、新任务开始时，还是执行中途。</li>
+<li><strong>模型输出之后，谁把动作做出来？</strong> 区分写出计划、在仿真里改变环境状态、用真实机器人完成任务。评估一篇工作的贡献，要先弄清作者预先提供了什么能力，以及实验真正测了什么。</li>
+</ol>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev"></div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/05/mini-swe-agent-index/" rel="next">
+              mini-SWE-agent 学习系列：从跑通任务到追踪机制
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>
