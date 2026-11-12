@@ -92,7 +92,7 @@
         <h1 class="post-title">Agent 论文阅读笔记：从经验记忆到具身执行</h1>
         <div class="post-meta">
           <div class="meta-item">
-            <p class="post-time">2026-11-10 00:00</p>
+            <p class="post-time">2026-11-10 10:00</p>
           </div>
           
           <!-- <p class="meta-item">
@@ -109,7 +109,8 @@
       <div class="post-content"><p>这轮阅读从一个问题开始：<strong>Agent 做错一次以后，怎样让下次做得更好？</strong> 读到具身智能，又多了一个问题：<strong>模型选对了动作，机器人就真的做得到吗？</strong></p>
 <span id="more"></span>
 
-<h2 id="从当前观察到跨任务经验"><a href="#从当前观察到跨任务经验" class="headerlink" title="从当前观察到跨任务经验"></a>从当前观察到跨任务经验</h2><table>
+<h2 id="从当前观察到跨任务经验"><a href="#从当前观察到跨任务经验" class="headerlink" title="从当前观察到跨任务经验"></a>从当前观察到跨任务经验</h2><p>下文年份按论文的 arXiv 预印本首发年份标注。</p>
+<table>
 <thead>
 <tr>
 <th>论文</th>
@@ -118,27 +119,27 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2210.03629">ReAct</a></td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2210.03629">ReAct</a>（2022）</td>
 <td>交替进行推理、行动和观察</td>
 <td>根据本次执行的观察调整下一步，核心方法没有跨任务经验库</td>
 </tr>
 <tr>
-<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2303.11366">Reflexion</a></td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2303.11366">Reflexion</a>（2023）</td>
 <td>根据执行记录和反馈生成文字反思</td>
 <td>将教训放进下一次输入，主要帮助同一任务的重试</td>
 </tr>
 <tr>
-<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2308.10144">ExpeL</a></td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2308.10144">ExpeL</a>（2023）</td>
 <td>从多个任务的成功与失败中提炼规则，并保留成功轨迹</td>
 <td>新任务来了，检索相似的成功轨迹作为示例，同时给模型提供归纳好的规则</td>
 </tr>
 <tr>
-<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2403.08978">AutoGuide</a></td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2403.08978">AutoGuide</a>（2024）</td>
 <td>给经验规则写上适用条件</td>
 <td>根据当前执行情境选规则；这个「经验标签」描述的是何时该用，而不只是经验属于哪一类</td>
 </tr>
 <tr>
-<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.16291">Voyager</a></td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.16291">Voyager</a>（2023）</td>
 <td>在 Minecraft 中自主提出任务，用执行反馈修正代码</td>
 <td>把验证成功的程序存为技能，之后可以检索和组合</td>
 </tr>
@@ -154,28 +155,28 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2306.15724">REFLECT</a></td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2306.15724">REFLECT</a>（2023）</td>
 <td>把视觉、声音等执行记录整理成分层摘要，定位失败，再据此生成补救计划</td>
 <td>回看的是当前任务日志，主要解决「怎么知道刚才哪里错了」</td>
 </tr>
 <tr>
-<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2310.15127">HELPER</a></td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2310.15127">HELPER</a>（2023）</td>
 <td>用对话和可用的失败反馈检索「语言—程序」案例，让模型生成动作程序</td>
 <td>程序在 TEACh 仿真中调用已有动作接口；要改变场景状态才算完成，但接口抽象掉了机械臂的精细操作</td>
 </tr>
 <tr>
-<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2204.01691">SayCan</a></td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2204.01691">SayCan</a>（2022）</td>
 <td>语言模型评估技能对任务是否有用，技能价值函数估计当前能否做成，两者结合选择下一步</td>
 <td>在真实机器人上组合已有技能。杯子换位置、夹爪怎么对准，仍由底层执行策略处理</td>
 </tr>
 <tr>
-<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2207.05608">Inner Monologue</a></td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2207.05608">Inner Monologue</a>（2022）</td>
 <td>将技能是否成功、当前场景或问答结果转成文字，补进规划器的上下文</td>
 <td>用执行后的反馈重试或改计划；底层动作仍由已有技能执行</td>
 </tr>
 </tbody></table>
 <p>最容易混淆的是<strong>任务步骤和控制动作</strong>。「拿起杯子」是一个任务步骤；夹爪往哪里移、旋转多少、什么时候闭合，才是控制动作。预训练的抓取技能可以根据当前观察调整，并不等于回放一条固定轨迹。VLA 可以直接从观察和指令生成控制动作，也可以作为高层规划器下面的执行模块。即使模型不显式列步骤，能否独立完成长任务仍要看实验。</p>
-<p>另一条支线是 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2310.04406">LATS</a>：它把当前任务的尝试组织成搜索树，用评价和反馈选择下一条值得探索的行动路径。读它时可以留意：多试几条路带来的收益，是否值得额外的模型调用与执行成本。</p>
+<p>另一条支线是 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2310.04406">LATS</a>（2023）：它把当前任务的尝试组织成搜索树，用评价和反馈选择下一条值得探索的行动路径。读它时可以留意：多试几条路带来的收益，是否值得额外的模型调用与执行成本。</p>
 <h2 id="SayCan-怎么判断「现在做得到」？"><a href="#SayCan-怎么判断「现在做得到」？" class="headerlink" title="SayCan 怎么判断「现在做得到」？"></a>SayCan 怎么判断「现在做得到」？</h2><p>SayCan 给每个候选技能打两个分：<strong>语言模型判断这一步对任务有多合适；技能价值函数根据当前观测，估计从现在开始执行这项技能有多可能成功。</strong> 两个分数相乘，选分数最高的技能执行。</p>
 <p>价值函数是从机器人执行轨迹中学出来的。训练时，一个技能完成给 1，未完成给 0；在不折扣、只在结束时给奖励的情况下，预期奖励就对应成功概率。实际用到的是学出来的估计值。比如用户洒了饮料，语言模型可能倾向于「拿起海绵」，但如果当前状态下这个技能的可行性分很低，系统可以先选「找海绵」。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2204.01691#S3">SayCan 原文 §2–4</a> · <a target="_blank" rel="noopener" href="https://say-can.github.io/#approach">海绵示例</a></p>
 <p>这也区分了三件事：<strong>该不该做、现在有多可能做成、刚才到底做成了没有。</strong> 前两项是 SayCan 选技能时用的信号；最后一项是 Inner Monologue 加回规划器的执行反馈。论文的真实厨房实验将两套机制结合：即使抓取的预估分很高，实际抓空后，规划器仍可根据反馈重试或改计划。<a target="_blank" rel="noopener" href="https://proceedings.mlr.press/v205/huang23c/huang23c.pdf">Inner Monologue §4.3</a></p>
@@ -218,7 +219,12 @@
       <footer class="post-footer">
         <div class="post-nav">
           
-          <div class="post-nav-prev"></div>
+          <div class="post-nav-prev">
+            <i class="fa fa-chevron-left"></i>
+            <a href="/Francis-olio/2026/11/12/pi0-reading-notes/" rel="prev">
+              π₀ 论文笔记：通用机器人模型的三个挑战
+            </a>
+          </div>
            
           <div class="post-nav-next">
             <a href="/Francis-olio/2026/11/05/mini-swe-agent-index/" rel="next">
