@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>VoxPoser 论文笔记：让语言模型定义什么算好轨迹</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "VoxPoser 论文笔记：让语言模型定义什么算好轨迹",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">VoxPoser 论文笔记：让语言模型定义什么算好轨迹</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-18 16:48</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/%E5%85%B7%E8%BA%AB%E6%99%BA%E8%83%BD/" rel="tag">具身智能</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="tag">论文笔记</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/%E8%BF%90%E5%8A%A8%E8%A7%84%E5%88%92/" rel="tag">运动规划</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2307.05973"><strong>VoxPoser（2023）</strong></a> 解决的不是「让 LLM 直接控制机械臂」，而是<strong>让 LLM 告诉规划器，在眼前这个场景里，什么算一条好轨迹</strong>。比如「打开上层抽屉，别碰花瓶」：夹爪要靠近哪个把手、往哪里拉、哪里要绕开？这些要求可以变成三维地图，再交给运动规划器。</p>
+<span id="more"></span>
+
+<h2 id="图-2：LLM-写的代码，执行后真的能得到地图吗？"><a href="#图-2：LLM-写的代码，执行后真的能得到地图吗？" class="headerlink" title="图 2：LLM 写的代码，执行后真的能得到地图吗？"></a>图 2：LLM 写的代码，执行后真的能得到地图吗？</h2><p><div class="lazy-image-container" >
+  <img class="lazy-image" 
+       src="/Francis-olio/images/voxposer-reading-notes/figure-2.png" 
+       alt="VoxPoser 原论文图 2：语言和 RGB-D 感知通过代码构造价值地图，再由规划器计算轨迹" 
+       title="" 
+       loading="lazy" 
+       
+       
+       onload="this.classList.add('loaded');" 
+       onerror="this.parentElement.classList.add('error');">
+  <div class="lazy-image-skeleton"></div>
+</div></p>
+<p><em>图 2，来自 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2307.05973v2#S3">原论文 §3</a>。中间的代码是构图配方；右边的橙线才是规划结果。</em></p>
+<p>可以。<strong>前提是已经有感知和网格工具</strong>。图中 LLM 写的代码先建一张三维网格，然后分别调用已有接口找把手和花瓶。可供性图里，代码把找到的把手按高度排序，在最高的把手处标正分；约束图里，代码在花瓶占据的格子标负分，再把影响扩展到附近。两张图的不同视角只是为了展示同一类三维结果。</p>
+<p>这里有三个分工：</p>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>实际负责什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>LLM</strong></td>
+<td>从指令推断要查什么、怎么选目标、哪里值得靠近或避开，并生成调用接口的代码。</td>
+</tr>
+<tr>
+<td><strong>感知接口与代码执行器</strong></td>
+<td>根据 RGB‑D 观测定位物体或部件，把当前场景的实际坐标写进地图。</td>
+</tr>
+<tr>
+<td><strong>规划器</strong></td>
+<td>用地图和机器人的运动约束，算出末端执行器经过的位置与朝向。</td>
+</tr>
+</tbody></table>
+<p>单看这个固定例子，人也能写出两个构图函数。LLM 的价值是<strong>换一条指令时可以现场换规则</strong>：「开下层抽屉，避开杯子」需要选更低的把手，还要换一个避让对象。如果只是花瓶挪了位置，规则可以不变，变化的是感知提供的坐标。两种变化分别由不同组件处理。</p>
+<p>论文的实现不只有图里的两种地图。可供性和避让主要用于搜索末端位置；旋转、速度和夹爪开合地图再为沿途位置指定相应行为。所谓「可组合」，是同一条轨迹可以同时考虑靠近目标和避开障碍等要求，不必把它们写成互不相干的动作指令。（§3.2–3.3）</p>
+<h2 id="地图怎么变成轨迹？"><a href="#地图怎么变成轨迹？" class="headerlink" title="地图怎么变成轨迹？"></a>地图怎么变成轨迹？</h2><p>读到任务代价和零阶优化时，可以把它理解成：<strong>规划器能给候选动作或路线打分，就可以比较哪条更好，不需要由 LLM 再评一次，也不必求目标函数的梯度。</strong> 原文用随机采样解释通用优化框架；具体实现要区分：普通末端位置路径用贪心搜索，平面推物体的实验则随机采样接触点、方向和距离等动作参数。</p>
+<p><strong>MPC（模型预测控制）说的是执行节奏</strong>：先往前规划一段，执行第一步，然后用新观测重新规划。图里的橙线不是一次算好就一直照着走。如果花瓶被挪动，规划器可以根据更新的观测改道。在普通末端规划里，论文多数时候把场景视为静态来预测，靠反复重规划应对变化；这不等于它有一个准确预测所有物体运动的物理模型。（§3.3、§4 实现细节）</p>
+<p>这和 π₀ 都有「往前看一段，再根据观察更新」的节奏，但<strong>π₀ 用学到的策略生成动作块；VoxPoser 显式构造评分，再用规划器搜索轨迹</strong>。相比 SayCan 的技能选取，VoxPoser 把语言的影响推进到了轨迹层，但仍依赖感知、控制器和任务假设；部分推物体的设置也用了预定义推运动作。（§4 实现细节）</p>
+<h2 id="实验：零样本规划能做到哪一步？"><a href="#实验：零样本规划能做到哪一步？" class="headerlink" title="实验：零样本规划能做到哪一步？"></a>实验：零样本规划能做到哪一步？</h2><ul>
+<li><strong>真机操作与扰动（表 1）</strong>：在 5 项代表性任务上，每项每种条件试 10 次。VoxPoser 在静态和扰动条件下分别成功 <strong>88% 和 70%</strong>，论文中的 LLM＋动作原语基线分别为 <strong>24% 和 0%</strong>。这是整套系统的对比，不是对重规划单一组件的因果估计。</li>
+<li><strong>未见指令与属性（表 2）</strong>：仿真包括 13 个可随机化任务。未见指令与未见属性同时出现时，物体操作和空间组合两类的成功率分别为 <strong>65.0% 和 76.7%</strong>。这里的「未见」相对于提示示例或基线训练集，测试仍由任务模板和属性设置界定。</li>
+<li><strong>接触动力学（表 3）</strong>：门、窗和冰箱的仿真实验里，零样本路线通常有意义，却常常打不开目标。作者把这些路线当成<strong>探索起点</strong>，在附近试动作，用结果训练动力学模型。以开窗为例，成功率从零样本的 <strong>3.3%</strong> 升到有轨迹先验并在线学习后的 <strong>80.0%</strong>；这不是零样本真机开窗的成绩。</li>
+</ul>
+<p>最后一组实验说明：<strong>地图定义想要什么，动力学模型预测动手后会发生什么。</strong> 知道「该拉把手」并不等于知道门的转轴、接触和阻力会怎样影响结果。论文也指出，真机失败常来自感知，特别是物体部件的检测；主要规划的是末端轨迹，不能把它当作对整条机械臂的完整避碰保证。（§4.3–5）</p>
+<p>这篇最值得带走的是<strong>语言如何变成可以优化的任务目标</strong>。运动规划器负责找路，LLM 把「什么算做对」写成能随场景变化的规则。论文还展示了同一份知识能用来引导在线探索，但没有因此消除真实接触操作对动力学和感知的依赖。</p>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/html/2307.05973v2">原论文（arXiv v2）</a> · <a target="_blank" rel="noopener" href="https://voxposer.github.io/">项目演示</a></p>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev"></div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/18/pi05-reading-notes/" rel="next">
+              π₀.₅ 论文笔记：换一个家，机器人还能做家务吗？
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>
