@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>当 Agent 开始改进自己的工作方式</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "当 Agent 开始改进自己的工作方式",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">当 Agent 开始改进自己的工作方式</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-21 22:54</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/Harness/" rel="tag">Harness</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="tag">论文笔记</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p>我们通常把 AI Agent 的能力归结于模型：模型越强，任务应该完成得越好。</p>
+<p>但使用过编码 Agent 就会发现，失败有时并不发生在「想不出答案」这一步。它可能找到了正确文件，却一直重复阅读；可能知道应该运行测试，却提前宣布完成；也可能在连续调用工具时丢失工作目录，随后围绕错误的环境不断尝试。</p>
+<p>这些问题让人开始重新审视：<strong>模型的能力，究竟如何才能转化为可靠的任务执行？</strong></p>
+<span id="more"></span>
+
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/html/2611.22299v1">《Harnesses That Improve Themselves: A Unifying Framework for Self-Improving Agent Harnesses》</a>关注的正是这个问题。作者将目光放在模型周围的运行软件上，讨论如何根据执行失败，自动改进 Agent 的工作方式。这篇工作的主体是一套统一的架构与设计框架，并通过小规模编码实验检验其中的设计思路。</p>
+<h2 id="从「模型会不会」到「系统能不能完成」"><a href="#从「模型会不会」到「系统能不能完成」" class="headerlink" title="从「模型会不会」到「系统能不能完成」"></a>从「模型会不会」到「系统能不能完成」</h2><p>先想象一个简单任务：让 Agent 修复博客中的模板错误。</p>
+<p>模型需要阅读模板、判断原因、修改代码，然后运行构建。构建失败时，它还得根据错误继续调整。</p>
+<p>在这个过程中，模型负责推理和生成操作，而另外一层软件负责组织整个执行过程：</p>
+<ul>
+<li>每一轮给模型提供哪些信息；</li>
+<li>如何执行文件修改和终端命令；</li>
+<li>如何保存任务状态与工具反馈；</li>
+<li>遇到重复失败时是否继续尝试；</li>
+<li>满足什么条件才允许结束。</li>
+</ul>
+<p>这层软件就是 <strong>agent harness</strong>，可以理解为 Agent 的运行框架。</p>
+<p>它连接模型与实际环境。模型提出操作，框架负责执行，再把结果整理成下一轮的输入。一项长任务，就是这样被拆成连续的交互。</p>
+<p>因此，当 Agent 最终失败时，需要检查的不只有模型的推理能力，还有这条执行链路。</p>
+<h2 id="自我改进，具体改什么？"><a href="#自我改进，具体改什么？" class="headerlink" title="自我改进，具体改什么？"></a>自我改进，具体改什么？</h2><p>这里的「自我改进」很容易让人联想到模型训练：收集数据、更新权重，让模型学会新的知识。</p>
+<p>这篇论文讨论的重点是另一条路径：<strong>保持模型权重不变，修改它运行时使用的软件。</strong></p>
+<p>比如，Agent 总是在验证之前结束任务，可以修改结束检查；Agent 总是被大量旧日志淹没，可以调整上下文管理；Agent 反复执行同一条失败命令，可以加入重复检测与策略切换机制。</p>
+<p>作者用四类组件描述这些可修改部分：<a target="_blank" rel="noopener" href="https://arxiv.org/html/2611.22299v1#S2">论文 §II</a></p>
+<table>
+<thead>
+<tr>
+<th>组成部分</th>
+<th>核心问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>上下文与状态</td>
+<td>下一轮模型需要看到、记住什么？</td>
+</tr>
+<tr>
+<td>执行控制</td>
+<td>继续、重试、换策略，还是结束？</td>
+</tr>
+<tr>
+<td>工具接口</td>
+<td>怎样把模型的决定变成真实操作，并返回结果？</td>
+</tr>
+<tr>
+<td>验证与恢复</td>
+<td>怎样检查结果，失败后怎样继续？</td>
+</tr>
+</tbody></table>
+<p>从这个角度看，Agent 的进步可以来自更合适的信息组织、更可靠的操作接口，以及更清晰的完成条件。</p>
+<h2 id="两个循环：做任务，以及改进做任务的方式"><a href="#两个循环：做任务，以及改进做任务的方式" class="headerlink" title="两个循环：做任务，以及改进做任务的方式"></a>两个循环：做任务，以及改进做任务的方式</h2><p>整篇论文最容易理解的结构，是一个执行内环，加上一个改进外环。</p>
+<p>执行内环处理用户任务：读取信息、生成操作、执行工具、检查反馈，再决定继续还是结束。</p>
+<p>改进外环则查看这些执行记录，寻找反复出现的问题，提出框架代码补丁，验证之后决定是否保留。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2611.22299v1#S2">论文图 1 与 §II</a></p>
+<p>下面是按这一关系整理的文字示意：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">使用现有框架完成任务</span><br><span class="line">        ↓</span><br><span class="line">留下执行记录与验证结果</span><br><span class="line">        ↓</span><br><span class="line">分析重复出现的运行缺陷</span><br><span class="line">        ↓</span><br><span class="line">修改框架代码</span><br><span class="line">        ↓</span><br><span class="line">验证并接受有效修改</span><br><span class="line">        ↓</span><br><span class="line">使用新框架处理后续任务</span><br></pre></td></tr></table></figure>
+
+<p>这意味着，一次失败除了产生任务结果，也可能提供改进系统的材料。外环提出修改的优化器可以使用另一个编码模型，也可以由同一个模型承担不同角色。</p>
+<p>不过，关键在于判断：这次失败究竟暴露了什么？</p>
+<h2 id="先找对故障，再修改系统"><a href="#先找对故障，再修改系统" class="headerlink" title="先找对故障，再修改系统"></a>先找对故障，再修改系统</h2><p>下面用一个博客开发场景说明。<strong>这个例子用于解释机制，并非论文实验。</strong></p>
+<p>假设 Agent 修改了模板，随后直接告诉用户「已经修复」，但实际构建仍然失败。</p>
+<p>最直接的做法，是补上一句提示：</p>
+<blockquote>
+<p>修改之后，请先运行构建再宣布完成。</p>
+</blockquote>
+<p>这条规则有帮助，但它仍然依赖模型在合适时刻记住并主动执行。</p>
+<p>另一种做法，是修改框架的结束入口：收到完成请求时，检查最后一次编辑之后是否运行过构建，以及构建是否成功。没有有效证据，就把检查结果返回给模型，让任务继续。</p>
+<p>这里，「最后一次编辑之后」非常重要。如果先构建成功，再修改模板，之前的通过记录已经不足以证明当前版本正确。</p>
+<p>这个例子也揭示了框架改进的本质：<strong>把某些容易遗漏的要求，变成运行过程中实际执行的约束。</strong></p>
+<p>但并非所有失败都适合这样处理。如果工具执行正常、必要信息也没有丢失，模型却始终理解错业务逻辑，那么继续添加运行检查未必能够解决问题。轨迹分析需要先形成故障假设，再通过实验检验它。</p>
+<h2 id="我的想法"><a href="#我的想法" class="headerlink" title="我的想法"></a>我的想法</h2><p>沿着论文的思路，我想借用软件工程中已经积累、广泛采用的实践，把需求澄清、测试、代码审查和故障复盘作为自进化 Agent 的初始流程。让它在执行中发现流程的不足，提出修改，再通过独立验证决定是否保留，或许就能让经验逐渐沉淀成更可靠的工作方式。这是我基于论文产生的设想；能否持续变好，还需要观察真实任务中的效果与成本。</p>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/html/2611.22299v1">原论文（arXiv v1）</a></p>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev"></div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/18/voxposer-reading-notes/" rel="next">
+              VoxPoser 论文笔记：让语言模型定义什么算好轨迹
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>
