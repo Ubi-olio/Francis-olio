@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>AWM 阅读笔记：把执行经历变成流程记忆</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "AWM 阅读笔记：把执行经历变成流程记忆",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">AWM 阅读笔记：把执行经历变成流程记忆</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-22 10:00</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="tag">论文笔记</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><div class="paper-summary"><p><strong>问题：</strong>Agent 往往逐个任务从头摸索；<strong>方法：</strong>AWM 从执行经历中归纳可复用的子任务流程，加入记忆，辅助后续行动。</p></div>
+
+<span id="more"></span>
+
+<h2 id="先看结构：AWM-新增了哪一环？"><a href="#先看结构：AWM-新增了哪一环？" class="headerlink" title="先看结构：AWM 新增了哪一环？"></a>先看结构：AWM 新增了哪一环？</h2><p>通用 Agent 根据任务、当前观察和记忆生成动作，再从环境获得反馈。<strong>AWM 增加的是任务结束后的经验积累支路</strong>：把被判成功的经历归纳成 workflow，更新后续任务的记忆。</p>
+<p><div class="lazy-image-container" >
+  <img class="lazy-image" 
+       src="/Francis-olio/images/awm-reading-notes/architecture.svg" 
+       alt="通用 Agent 执行结构：蓝色为基础流程，红色为 AWM 新增的在线流程记忆支路" 
+       title="" 
+       loading="lazy" 
+       
+       
+       onload="this.classList.add('loaded');" 
+       onerror="this.parentElement.classList.add('error');">
+  <div class="lazy-image-skeleton"></div>
+</div></p>
+<p><em>结构示意，非论文原图。红色展示在线 AWM；离线 AWM 预先从已有样例归纳流程，再使用固定记忆。模型权重与基础执行机制保持不变。</em></p>
+<h2 id="01-从具体经历到可复用的-workflow"><a href="#01-从具体经历到可复用的-workflow" class="headerlink" title="01　从具体经历到可复用的 workflow"></a>01　从具体经历到可复用的 workflow</h2><p>AWM 关注的问题是：Agent 做过一件事之后，能否从中提炼出通用流程，帮助后续任务少一些重复摸索？理解方法之前，需要先区分两个概念。</p>
+<div class="paper-grid">
+<div class="paper-card"><p><strong>Experience · 经历</strong></p><p>一次具体任务的指令，以及尝试完成任务时产生的执行轨迹。轨迹记录每一步的观察和动作。</p></div>
+<div class="paper-card"><p><strong>Workflow · 工作流程</strong></p><p>从经历中提炼出的可复用子任务，包含功能描述，以及相应的操作步骤。</p></div>
+</div>
+
+<p>归纳模块 <strong>I</strong> 接收一条或多条经历，通过提示语言模型提取通用子任务。关键有两步：<strong>缩小到可复用的子任务，以及将具体值替换成通用参数。</strong></p>
+<div class="paper-flow"><p class="paper-caption">简化示例，非论文实验轨迹</p><p>具体经历：搜索干猫粮，并完成后续购物操作<br>↓ 归纳模块 I<br><strong>可复用子任务：搜索 {product-name}</strong><br>↓<br>加入流程记忆，供后续任务参考</p></div>
+
+<p>使用时，模型同时看到当前任务、包含 workflow 的记忆和当前观察，再生成下一步动作。流程提供参考，并不意味着忽略当前页面、直接回放整段操作。</p>
+<div class="paper-note"><p class="paper-callout-title">这里更新的是什么？</p><p>模型负责归纳流程，外部程序负责将其写入记忆。<strong>AWM 更新的是上下文中的经验，没有修改 harness 的运行代码。</strong></p></div>
+
+<h2 id="02-离线与在线：记忆什么时候更新？"><a href="#02-离线与在线：记忆什么时候更新？" class="headerlink" title="02　离线与在线：记忆什么时候更新？"></a>02　离线与在线：记忆什么时候更新？</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>离线 AWM</th>
+<th>在线 AWM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>经历来源</td>
+<td>已有的人工标注或模型生成样例</td>
+<td>Agent 执行任务产生的经历</td>
+</tr>
+<tr>
+<td>归纳时机</td>
+<td>测试之前集中提炼</td>
+<td>每个任务结束后，从被评价模型判为成功的经历中提炼</td>
+</tr>
+<tr>
+<td>记忆变化</td>
+<td>测试期间使用同一份流程记忆</td>
+<td>新流程加入记忆，供后续任务使用</td>
+</tr>
+</tbody></table>
+<p>离线方式像是先编好操作手册，再开始做题；在线方式则是在执行任务的过程中，逐步积累手册。在线新增的流程用于后续任务，并非自动让当前失败任务重做一次。</p>
+<aside class="paper-question">
+<p class="paper-callout-title">我的疑问：什么时候停止？</p>
+<p><strong>单个任务：</strong>模型输出 STOP，或者达到最大步数等预设终止条件。<strong>停止不等于成功</strong>；在线设置还会调用评价模型，判断这次经历是否值得用于归纳。</p>
+<p><strong>流程积累：</strong>论文在线实验在所有给定测试任务处理完后结束，<strong>没有设计“已经学够了”的自主停止条件。</strong></p>
+</aside>
+
+<h2 id="03-两个测评基准：执行与预测"><a href="#03-两个测评基准：执行与预测" class="headerlink" title="03　两个测评基准：执行与预测"></a>03　两个测评基准：执行与预测</h2><h3 id="WebArena：在可交互网站里完成任务"><a href="#WebArena：在可交互网站里完成任务" class="headerlink" title="WebArena：在可交互网站里完成任务"></a>WebArena：在可交互网站里完成任务</h3><p>它提供购物、论坛、协作开发、内容管理等功能完整的测试网站，也包括地图工具。重点是环境可以受控地部署、重置，便于重复实验。</p>
+<div class="paper-example"><p class="paper-caption">简化示例</p><p>让 Agent 在指定论坛版块发布一篇帖子。它需要自己进入版块、填写内容并提交；评测检查帖子是否真正发布成功。</p></div>
+
+<p>自己的操作会改变后续环境，因此 Agent 需要应对整条执行链路中的错误，而不仅是判断某一次点击。</p>
+<h3 id="Mind2Web：根据网页状态预测操作"><a href="#Mind2Web：根据网页状态预测操作" class="headerlink" title="Mind2Web：根据网页状态预测操作"></a>Mind2Web：根据网页状态预测操作</h3><p>原版 Mind2Web 收集了来自 <strong>137 个网站、31 个领域的两千多个任务</strong>，包含人工演示的操作序列和网页状态。</p>
+<div class="paper-example"><p class="paper-caption">简化示例</p><p>给定航班查询任务和记录好的页面状态，让模型预测应选中“出发城市”输入框，并输入“上海”。评测比较它选择的元素和操作是否与标注一致。</p></div>
+
+<p>原版采用逐步离线评测，不等于让 Agent 在实时网站上自由操作，直到完成整个任务。</p>
+<div class="paper-note"><p><strong>WebArena 主要检查任务最终有没有办成；原版 Mind2Web 主要检查给定网页状态下，每一步操作预测得对不对。</strong></p></div>
+
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/html/2409.07429v1">AWM 原文 §2.3、§3</a> · <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2307.13854">WebArena</a> · <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2306.06070">Mind2Web</a></p>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev"></div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/21/self-improving-harness-reading-notes/" rel="next">
+              当 Agent 开始改进自己的工作方式
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>

@@ -2533,3 +2533,54 @@ html.no-gsap .timeline-dot {
     background-position: 200% 0;
   }
 }
+
+/* Paper notes: opt-in components, shared with francis-paper-blog skill. */
+.post-content {
+  --paper-blue: #95A9D8;
+  --paper-blue-bg: rgba(149, 169, 216, 0.10);
+  --paper-green: #3b941d;
+  --paper-green-line: #59b832;
+  --paper-green-border: #8ccf67;
+  --paper-green-bg: #f1faeb;
+}
+.post-content :is(.paper-summary, .paper-card, .paper-flow, .paper-example) {
+  background: var(--paper-blue-bg);
+  border: 1px solid var(--paper-blue);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+}
+.post-content .paper-summary { border-left-width: 3px; }
+.post-content .paper-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.post-content .paper-grid .paper-card { margin: 0; min-width: 0; }
+.post-content :is(.paper-question, .paper-note) {
+  background: var(--paper-green-bg);
+  color: var(--text-color);
+  border: 1px solid var(--paper-green-border);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+.post-content .paper-note { border-left: 3px solid var(--paper-green-line); border-radius: 0 6px 6px 0; }
+.post-content .paper-callout-title { color: var(--paper-green); font-weight: 700; font-size: 1.1em; }
+.post-content :is(.paper-summary, .paper-card, .paper-flow, .paper-example, .paper-question, .paper-note) > :last-child { margin-bottom: 0; }
+.post-content .paper-flow { text-align: center; }
+.post-content .paper-caption { font-size: .85em; color: var(--secondary-text-color); }
+.post-content .paper-diagram { overflow-x: auto; margin: 1.5rem 0; }
+.post-content .paper-diagram svg { display: block; width: 100%; min-width: 580px; height: auto; }
+html[data-theme='dark'] .post-content {
+  --paper-green: #95d97a;
+  --paper-green-border: #507345;
+  --paper-green-bg: #202e20;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .post-content {
+    --paper-green: #95d97a;
+    --paper-green-border: #507345;
+    --paper-green-bg: #202e20;
+  }
+}
+@media (max-width: 650px) {
+  .post-content .paper-grid { grid-template-columns: 1fr; }
+  .post-content :is(.paper-summary, .paper-card, .paper-flow, .paper-example, .paper-question, .paper-note) { padding: .9rem 1rem; }
+}
