@@ -1,0 +1,4 @@
+interface:
+  display_name: "Francis 论文博客"
+  short_description: "将已讨论的论文整理为重点清晰、蓝绿配色并标出结构创新的博客笔记"
+  default_prompt: "使用 $francis-paper-blog 将这篇论文整理成符合我博客风格的阅读笔记。"
