@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 392" role="img" aria-labelledby="title">
+  <title id="title">AHE 的任务执行与自动改进循环</title>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#bf3546"/></marker></defs>
+  <rect width="480" height="392" rx="12" fill="white"/>
+  <rect x="48" y="24" width="368" height="59" rx="8" fill="#f0f3fa" stroke="#95A9D8"/>
+  <g fill="#fff7f8" stroke="#bf3546">
+    <rect x="48" y="109" width="368" height="59" rx="8"/>
+    <rect x="48" y="194" width="368" height="59" rx="8"/>
+    <rect x="48" y="279" width="368" height="59" rx="8"/>
+  </g>
+  <g fill="none" stroke="#bf3546" stroke-width="2" marker-end="url(#arrow)">
+    <path d="M232 83V108"/><path d="M232 168V193"/><path d="M232 253V278"/><path d="M416 309H452V54H417"/>
+  </g>
+  <g font-family="sans-serif" font-size="19" fill="#26332f" text-anchor="middle">
+    <text x="232" y="60">目标模型用当前 Harness 执行任务</text>
+    <text x="232" y="145">Debugger 整理轨迹和故障证据</text>
+    <text x="232" y="230">Evolve Agent 修改组件并登记预测</text>
+    <text x="232" y="315">下一轮运行后，用结果核对预测</text>
+    <text x="232" y="368" font-size="15" fill="#bf3546">红色表示 AHE 的自动改进支路</text>
+  </g>
+</svg>
