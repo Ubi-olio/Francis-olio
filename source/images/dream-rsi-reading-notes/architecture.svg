@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 392" role="img" aria-labelledby="title desc">
+  <title id="title">Dream-RSI 的在线搜索与离线回放</title>
+  <desc id="desc">真实搜索产生历史发现树。离线回放比较策略并选出下一轮部署的版本。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#bf3546"/>
+    </marker>
+  </defs>
+  <rect width="480" height="392" rx="12" fill="white"/>
+  <g fill="#f0f3fa" stroke="#95A9D8">
+    <rect x="40" y="24" width="370" height="60" rx="8"/>
+    <rect x="40" y="112" width="370" height="60" rx="8"/>
+  </g>
+  <g fill="#fff7f8" stroke="#bf3546">
+    <rect x="40" y="200" width="370" height="60" rx="8"/>
+    <rect x="40" y="288" width="370" height="60" rx="8"/>
+  </g>
+  <g fill="none" stroke="#bf3546" stroke-width="2" marker-end="url(#arrow)">
+    <path d="M225 84V111"/>
+    <path d="M225 172V199"/>
+    <path d="M225 260V287"/>
+    <path d="M410 318H450V54H411"/>
+  </g>
+  <g font-family="sans-serif" font-size="19" fill="#26332f" text-anchor="middle">
+    <text x="225" y="60">在线生成方案并评测</text>
+    <text x="225" y="148">保存节点、父子关系与分数</text>
+    <text x="225" y="236">离线回放，比较候选探索策略</text>
+    <text x="225" y="324">部署回放评分最高的策略</text>
+    <text x="225" y="376" font-size="16" fill="#bf3546">红色标出策略更新与部署</text>
+  </g>
+</svg>
