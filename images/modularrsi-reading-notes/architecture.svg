@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 455" role="img" aria-labelledby="title desc">
+  <title id="title">ModularRSI 的模块化演化流程</title>
+  <desc id="desc">初始 Terminus 2 在独立任务池生成轨迹。五个模块各自归因、修改和验证，中途不共享更新。整合一轮后冻结函数库，再到独立基准评测。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#bf3546"/>
+    </marker>
+  </defs>
+  <rect width="480" height="455" rx="12" fill="white"/>
+  <g fill="#f0f3fa" stroke="#95A9D8">
+    <rect x="30" y="20" width="420" height="60" rx="8"/>
+    <rect x="30" y="369" width="420" height="60" rx="8"/>
+  </g>
+  <g fill="#fff7f8" stroke="#bf3546">
+    <rect x="30" y="113" width="420" height="116" rx="8"/>
+    <rect x="30" y="268" width="420" height="63" rx="8"/>
+  </g>
+  <g fill="none" stroke="#bf3546" stroke-width="2" marker-end="url(#arrow)">
+    <path d="M240 80V112"/>
+    <path d="M240 229V267"/>
+    <path d="M240 331V368"/>
+  </g>
+  <g font-family="sans-serif" text-anchor="middle" fill="#26332f">
+    <text x="240" y="46" font-size="20">初始 Terminus 2</text>
+    <text x="240" y="68" font-size="16">在独立的演化任务上生成轨迹</text>
+    <text x="240" y="141" font-size="20">五条分支独立演化</text>
+    <text x="240" y="165" font-size="16">循环、工具、观察、上下文、结束判断</text>
+    <text x="240" y="194" font-size="17" fill="#a12a38">同题轨迹归因 → 局部修改 → 三道验证</text>
+    <text x="240" y="216" font-size="14">每个模块独立三轮，中途互不共享更新</text>
+    <text x="240" y="295" font-size="20">集成后再跑一轮</text>
+    <text x="240" y="318" font-size="16">处理重复与冲突，冻结函数库</text>
+    <text x="240" y="395" font-size="20">独立基准评测</text>
+    <text x="240" y="418" font-size="16">Terminal-Bench 2.0 与 SWE-bench Verified</text>
+  </g>
+</svg>
