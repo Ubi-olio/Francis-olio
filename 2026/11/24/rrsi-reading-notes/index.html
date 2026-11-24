@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>RRSI 阅读笔记：Harness 自进化怎么避免越改越会刷题？</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "RRSI 阅读笔记：Harness 自进化怎么避免越改越会刷题？",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">RRSI 阅读笔记：Harness 自进化怎么避免越改越会刷题？</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-24 18:00</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/Harness/" rel="tag">Harness</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/RSI/" rel="tag">RSI</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="tag">论文笔记</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p><strong>arXiv 首发</strong> <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.24972">2026-09-21</a> · <strong>发表场合</strong> arXiv 预印本，暂未核实到会议或期刊发表 · <strong>阅读版本</strong> <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3">arXiv v3（2026-10-04）</a></p>
+<div class="paper-summary">
+<p>反复在同一批任务上改 Harness 容易把分数刷高却失去迁移性，RRSI 给外层的提案和筛选加上正则化，让更有证据、成本合理的改动进入下一版。</p>
+</div>
+
+<span id="more"></span>
+
+<p>第一作者记录了该研究在 2026 年 10 月的 Google COLM 2026 Expo 展示。 <a target="_blank" rel="noopener" href="https://richard-peng-xia.github.io/index.html">作者主页</a> · <a target="_blank" rel="noopener" href="https://research.google/conferences-and-events/google-at-colm-2026/">Google 活动日程</a></p>
+<h2 id="正则化加在-Agent-的哪一层？"><a href="#正则化加在-Agent-的哪一层？" class="headerlink" title="正则化加在 Agent 的哪一层？"></a>正则化加在 Agent 的哪一层？</h2><p>Agent 做题时，模型根据任务和环境观察决定下一步动作，Harness 负责提示词、工具、上下文和执行流程。RRSI 在外层用另一个 LLM 提案角色<strong>修改 Harness 的源码</strong>。底座模型权重固定，提示词、控制流、工具、记忆、技能和子 Agent 等组件都可以改。每一轮用同一批进化任务收集反馈、测试改动、决定下一版，因此同一份评测反馈会反复影响搜索方向。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#S2">论文 §2–3.1</a></p>
+<figure class="paper-diagram" style="max-width: 32rem; margin-inline: auto;">
+
+<p><div class="lazy-image-container" >
+  <img class="lazy-image" 
+       src="/Francis-olio/images/rrsi-reading-notes/architecture.svg" 
+       alt="RRSI 的内外两层。内层由固定模型在 Harness 中读任务和观察、执行动作并产生轨迹。外层根据失败轨迹提出候选，审查代码差异并实测，通过筛选后更新 Harness，同时把编辑结果写回历史。红色标出 RRSI 新增的约束。" 
+       title="" 
+       loading="lazy" 
+       
+       
+       onload="this.classList.add('loaded');" 
+       onerror="this.parentElement.classList.add('error');">
+  <div class="lazy-image-skeleton"></div>
+</div></p>
+<figcaption class="paper-caption">根据论文图 2 与附录 D 整理。红色标出 RRSI 加在外层进化中的规则。</figcaption>
+</figure>
+
+<h2 id="一轮进化怎么走？"><a href="#一轮进化怎么走？" class="headerlink" title="一轮进化怎么走？"></a>一轮进化怎么走？</h2><div class="paper-grid">
+<section class="paper-card">
+<p><strong>提案端控制怎么试</strong></p>
+<p>限制一个候选能打包几项改动，用历史记录指导提案，停滞时给没试过的组件留名额。</p>
+</section>
+<section class="paper-card">
+<p><strong>筛选端控制留什么</strong></p>
+<p>先审源码差异，再实测分数和 token 成本。通过门槛后才能竞争下一版，删除组件也要走同一套流程。</p>
+</section>
+</div>
+
+<h3 id="提案端少改几项，才知道哪一项有用"><a href="#提案端少改几项，才知道哪一项有用" class="headerlink" title="提案端少改几项，才知道哪一项有用"></a>提案端少改几项，才知道哪一项有用</h3><ol>
+<li><strong>限制单个候选的改动数（L₀ 式约束）。</strong> 预算按余弦曲线收紧，实验设定的起始上限是 3 或 4 项，下限是 1 项。前期可以组合几项相互配合的改动，后期更容易把分数变化归因到某一项。例如同时加提交前检查和工具重试，涨分后还得拆开才能判断谁起了作用。</li>
+<li><strong>保存每次尝试的证据。</strong> 记录改了哪个组件、验证的假设、源码差异、分数与 token 的变化，以及候选是否入选。后续提案能参考失败记录。一个候选打包的几项改动共享同一次测量结果，账本里的记录也会有这个归因限制。</li>
+<li><strong>停滞时换个地方试。</strong> 最近几轮的得分进步如果落在评测噪声范围内，系统会预留一部分提案名额，分给此前未实际评测过的组件。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#S3.SS2">论文 §3.2、附录 D.2</a></li>
+</ol>
+<h3 id="筛选端用两个分数参照"><a href="#筛选端用两个分数参照" class="headerlink" title="筛选端用两个分数参照"></a>筛选端用两个分数参照</h3><ol>
+<li><strong>评测前审差异。</strong> Critic 检查实际写进 Harness 的改动，拒绝把题目、答案、特定数值或只服务于进化基准的逻辑写进源码的候选，也会挡掉加进去却不起作用的机制。提案理由可以用具体任务解释自己想解决什么。</li>
+<li><strong>和历史最好分比，守住性能底线。</strong> 进化前重复评测初始 Harness，估计实测分的自然波动 δ。候选至少要达到「初始和历轮入选版本的最高分 − δ」。这个底线只会随历史纪录上升，可以防止几次小退步累积成一次大退步。</li>
+<li><strong>和当前版本比，判断涨分值不值额外 token（L₂ 式控制）。</strong> 涨分超过 δ 时，涨得越多，允许多花的 token 就越多。涨分未超过 δ 时，筛选会综合小幅分差、token 成本和结构新颖度。在编码实验中，这一档的小幅分差权重为零，候选须靠省 token 或引入此前从未入选的结构类型争取通过。系统在所有通过门槛的候选里选实测分数最高的，若无人通过，就保留当前版本。</li>
+<li><strong>给删除留一个入口（L₁ 式剪枝）。</strong> 如果某个试过的组件在近期没有观察到正向收益，系统会把它标为后续可清理的目标。提案者可以提出删除，删除方案仍需评测和筛选。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#S3.SS3">论文 §3.3</a> · <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#A4">附录 D</a></li>
+</ol>
+<p>L₀、L₁、L₂ 在这里是类比，分别对应<strong>限制每次改动数量、删除缺乏收益的组件、控制总体推理开销</strong>。论文把这些原则落实为对离散代码改动的规则。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#S3.SS1">论文 §3.1</a></p>
+<h3 id="两个被拒绝的真实候选"><a href="#两个被拒绝的真实候选" class="headerlink" title="两个被拒绝的真实候选"></a>两个被拒绝的真实候选</h3><ul>
+<li>编码第 0 轮，有个候选加了验证提醒并调整长任务处理方式。它<strong>涨了 1.69 个百分点，token 多了 26.1%</strong>。涨幅落在约 1.7 个百分点的噪声范围内，成本规则把它挡了下来。</li>
+<li>编码第 8 轮，有个候选在提交前重新展示原始任务指令。它<strong>省了 13.6% 的 token，但掉了 2.81 个百分点</strong>，跌破历史分数底线。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#A6">附录 F，表 8</a></li>
+</ul>
+<h2 id="换到没见过的任务还有效吗？"><a href="#换到没见过的任务还有效吗？" class="headerlink" title="换到没见过的任务还有效吗？"></a>换到没见过的任务还有效吗？</h2><p>论文在编码、办公和工程设计三个领域<strong>分别进化一套 Harness</strong>。主实验固定 Claude Opus 4.8，最终版本直接拿去跑留出数据。下表是相对各自初始 Harness 的分数变化。Harvey LAB 的 40 道留出题和进化任务同分布，其余五个留出基准用来测跨分布迁移。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#S4">论文 §4.1–4.2</a> · <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#A5.SS2">附录 E，表 6–7</a></p>
+<table>
+<thead>
+<tr>
+<th>领域</th>
+<th>进化时看得见的任务</th>
+<th>进化时看不见的任务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>编码</td>
+<td>Terminal-Bench 2.1，89 道容器化终端任务 <strong>+6.0</strong></td>
+<td>SWE-bench Verified，真实仓库修复 <strong>+1.8</strong></td>
+</tr>
+<tr>
+<td>办公</td>
+<td>Harvey LAB，120 道法律工作任务 <strong>+1.1</strong></td>
+<td>Harvey LAB 留出 <strong>+2.3</strong>，JobBench <strong>+4.7</strong>，GDPval <strong>+3.5</strong>，APEX-Agents <strong>+3.7</strong></td>
+</tr>
+<tr>
+<td>工程设计</td>
+<td>EngDesign，61 道设计题 <strong>+4.9</strong></td>
+<td>Frontier-Eng，按仿真或测试结果评分 <strong>+4.3</strong></td>
+</tr>
+</tbody></table>
+<p>办公任务的消融实验里，各版本从同一初始 Harness 出发，使用相同进化集和候选预算。分布外均分由 JobBench、GDPval 和 APEX-Agents 三项组成。token 开销在 Harvey LAB 进化集上测量。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#S4.SS3">论文 §4.3，表 2 与图 4</a></p>
+<table>
+<thead>
+<tr>
+<th>进化方式</th>
+<th align="right">进化集分数</th>
+<th align="right">分布外均分</th>
+<th align="right">每次 token（百万）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>初始 Harness</td>
+<td align="right">89.4</td>
+<td align="right">39.7</td>
+<td align="right">1.56</td>
+</tr>
+<tr>
+<td>无正则化</td>
+<td align="right"><strong>92.8</strong></td>
+<td align="right">40.3</td>
+<td align="right">3.80</td>
+</tr>
+<tr>
+<td>去掉提案规则</td>
+<td align="right">90.7</td>
+<td align="right">41.9</td>
+<td align="right">2.69</td>
+</tr>
+<tr>
+<td>去掉筛选规则</td>
+<td align="right">91.5</td>
+<td align="right">41.0</td>
+<td align="right">3.59</td>
+</tr>
+<tr>
+<td>完整 RRSI</td>
+<td align="right">90.5</td>
+<td align="right"><strong>43.6</strong></td>
+<td align="right">2.42</td>
+</tr>
+</tbody></table>
+<p><strong>只按进化集选版本，会选中 92.8 分的无正则化版本，它到了新基准平均少拿 3.3 分。</strong> 完整 RRSI 的 token 开销比无正则化版本少约 36%，比初始 Harness 仍多。这组实验把迁移收益和推理成本放到了同一张表里。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#S4.SS3">论文 §4.3</a></p>
+<p>这个差异也能在最终代码里看到。办公实验的 RRSI 在 20 轮评测过的 32 个候选里接收了 4 个，改动都接在已有的提交前复查步骤上。其中有实际读回交付文件的检查，例如发现某个来源数值在所有输出文件里都缺失，再让 Agent 补上。这样的检查可以用在不同类型的交付物上。 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.24972v3#A6">附录 F，表 9</a></p>
+<aside class="paper-question">
+<p class="paper-callout-title">哪一条规则最能防止刷题？</p>
+<p>论文里的消融一次拿掉的是整组提案或整组筛选规则。它给出了两组规则各自对迁移的影响。要区分改动预算、噪声门槛和剪枝的贡献，可以固定同一套任务和候选预算，每次只拿掉其中一条，再比较留出成绩和 token。</p>
+</aside>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev"></div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/24/modularrsi-reading-notes/" rel="next">
+              ModularRSI 阅读笔记：从轨迹里找问题，按模块改 Harness
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>
