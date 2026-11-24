@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 321" role="img" aria-labelledby="title desc">
+  <title id="title">Terminal-Bench 怎样给终端任务判分</title>
+  <desc id="desc">Agent 根据说明，在时限内操作 Docker 容器。测试根据容器最终状态判分。</desc>
+  <defs>
+    <marker id="blueArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#65799d"/>
+    </marker>
+    <marker id="redArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#bf3546"/>
+    </marker>
+  </defs>
+  <rect width="460" height="321" rx="12" fill="white"/>
+  <g fill="#f0f3fa" stroke="#95A9D8">
+    <rect x="38" y="18" width="384" height="67" rx="8"/>
+    <rect x="38" y="114" width="384" height="67" rx="8"/>
+  </g>
+  <rect x="38" y="210" width="384" height="76" rx="8" fill="#fff7f8" stroke="#bf3546"/>
+  <path d="M230 85V113" stroke="#65799d" stroke-width="2" marker-end="url(#blueArrow)"/>
+  <path d="M230 181V209" stroke="#bf3546" stroke-width="2" marker-end="url(#redArrow)"/>
+  <g font-family="sans-serif" text-anchor="middle" fill="#26332f">
+    <text x="230" y="46" font-size="20">任务说明与 Docker 环境</text>
+    <text x="230" y="69" font-size="16">给出初始状态和时间上限</text>
+    <text x="230" y="142" font-size="20">模型与 Harness 执行任务</text>
+    <text x="230" y="165" font-size="16">操作容器并根据反馈推进</text>
+    <text x="230" y="240" font-size="20">评测器运行验收测试</text>
+    <text x="230" y="266" font-size="16">根据容器最终状态判分</text>
+  </g>
+  <text x="230" y="309" font-family="sans-serif" text-anchor="middle" font-size="15" fill="#a12a38">红框标出基准的判分步骤</text>
+</svg>
