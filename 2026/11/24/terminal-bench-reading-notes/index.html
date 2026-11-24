@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 字体 (霞鹜文楷 LXGW WenKai Webfont) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.min.css" />
+  <!-- favicon -->
+  <link rel="shortcut icon" href="/Francis-olio/images/favicon.ico">
+<link rel="stylesheet" href="/Francis-olio/css/style.css">
+
+
+  <!-- activeTitle -->
+  
+  <!-- inactiveTitle -->
+  
+
+  <title>Terminal-Bench 阅读笔记：终端 Agent 怎样才算完成任务</title>
+  <!-- 注入配置到全局变量 -->
+  <script>
+    window.SITE_CONFIG = {
+      root: '/Francis-olio/',
+      activeTitle: "Terminal-Bench 阅读笔记：终端 Agent 怎样才算完成任务",
+      inactiveTitle: '|ω･`)暗中观察',
+      gsap: {"enable":true,"entrance_stagger":0.08,"scroll_trigger":true,"parallax":true,"hover_effect":true}
+    };
+  </script>
+
+  <!-- 引入 GSAP 核心库及 ScrollTrigger 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 加载JS文件 -->
+  
+<script src="/Francis-olio/js/head.js"></script>
+<script src="/Francis-olio/js/iconfont.js"></script>
+<script src="/Francis-olio/js/header.js"></script>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body class="">
+    <div id="swiper-container">
+  <img
+    src="/Francis-olio/images/swiper.jpg"
+    alt="Francis&#39; Olio" />
+  <div class="shadow"></div>
+</div>
+
+    <div class="body-page-view"><div id="header-container" class="header-top">
+  <div class="logo">
+    <a href="/Francis-olio/">
+       Francis&#39; Olio 
+    </a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle Menu" aria-expanded="false">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+  </button>
+
+  <nav class="nav-menu">
+    <ul class="nav-list">
+       
+      <li>
+        <a href="/Francis-olio/">首页</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/posts">文章</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/stats">统计</a>
+      </li>
+      
+      <li>
+        <a href="/Francis-olio/about">关于</a>
+      </li>
+       
+    </ul>
+  </nav>
+</div>
+
+<div class="post-page">
+  <main class="post-container">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">Terminal-Bench 阅读笔记：终端 Agent 怎样才算完成任务</h1>
+        <div class="post-meta">
+          <div class="meta-item">
+            <p class="post-time">2026-11-24 14:00</p>
+          </div>
+          
+          <!-- <p class="meta-item">
+            <a class="post-category-link" href="/Francis-olio/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+          </p> -->
+           
+          <p class="meta-item">
+            <a class="post-tag-none-link" href="/Francis-olio/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/Benchmark/" rel="tag">Benchmark</a>, <a class="post-tag-none-link" href="/Francis-olio/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="tag">论文笔记</a>
+          </p>
+          
+        </div>
+      </header>
+
+      <div class="post-content"><p><strong>arXiv 首发</strong> <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2601.11868">2026-01-17</a> · <strong>发表场合</strong> <a target="_blank" rel="noopener" href="https://openreview.net/pdf?id=a7Qa4CcHak">ICLR 2026 主会（Poster）</a> · <strong>阅读版本</strong> <a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1">arXiv v1（2026-01-17）</a></p>
+<div class="paper-summary">
+<p>为了测量 Agent 在终端里实际完成多步骤任务的能力，Terminal-Bench 2.0 为 89 道题提供可复现的运行环境，并用测试验收容器的最终状态。</p>
+</div>
+
+<span id="more"></span>
+
+<h2 id="一道题怎样判分"><a href="#一道题怎样判分" class="headerlink" title="一道题怎样判分"></a>一道题怎样判分</h2><p>每道题包含任务说明、Docker 环境、时限、测试和人写的参考解法。Agent 拿到说明后在容器里操作，评测器根据最终产物给出结果。参考解法供维护者确认任务可解，也让测试有一个已知能通过的对照。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S2">论文 §2.1–2.3</a></p>
+<p><div class="lazy-image-container" >
+  <img class="lazy-image" 
+       src="/Francis-olio/images/terminal-bench-reading-notes/task-flow.svg" 
+       alt="Terminal-Bench 任务评测示意。题目和容器交给 Agent，测试根据最终状态判分。" 
+       title="" 
+       loading="lazy" 
+       
+       
+       onload="this.classList.add('loaded');" 
+       onerror="this.parentElement.classList.add('error');">
+  <div class="lazy-image-skeleton"></div>
+</div></p>
+<p><em>根据论文 §2 整理的评测流程示意。</em></p>
+<p>论文里有一道题要求把 COBOL 程序重写成 Python。两个 Agent 可以用不同的方法理解原程序和实现新程序，测试比较的是给定输入下的输出是否一致。<strong>任务说明写清楚了什么，测试覆盖了什么，决定了这个通过率能说明什么。</strong> 作者从 229 道社区提交的任务中筛出 89 道，审查任务说明与测试是否一致、参考解法能否通过，以及是否存在误判。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S2.SS2">论文 §2.2–2.4</a></p>
+<h2 id="第-3-章：怎么比较模型和-harness"><a href="#第-3-章：怎么比较模型和-harness" class="headerlink" title="第 3 章：怎么比较模型和 harness"></a>第 3 章：怎么比较模型和 harness</h2><p><strong>Terminus 2 给不同模型提供共同的操作接口。</strong> 它在 Docker 容器的 tmux 终端里执行模型发出的按键操作，再把终端输出交回模型。读取文件、修改代码和运行测试都走这个接口。上下文接近模型上限时，Terminus 2 会调用模型摘要历史。固定这套框架换模型，可以观察不同模型如何利用相同类型的终端反馈推进任务。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S3.SS1">论文 §3.1、附录 F</a></p>
+<p>论文共测了六种 Agent：Terminus 2、Codex CLI、Claude Code、Gemini CLI、OpenHands 和 Mini-SWE-Agent。前三个品牌 CLI 分别接各自厂商的模型，其他组合按兼容性选择。可调推理强度的模型使用供应商默认设置。论文对每个受支持的组合至少重复跑五轮，共记录 <strong>32,155 次尝试</strong>。一次尝试是一套模型与 Agent 组合做一道题的一次运行。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S3.SS2">论文 §3.2–3.3</a></p>
+<p><strong>Terminal-Bench 提供题目和验收测试，Terminus 2 负责做题，Harbor 负责调度评测。</strong> 作者用 Harbor 在 Daytona 上并行运行 32 至 100 个容器。Harbor 也可以调度 Codex CLI 等其他 Agent。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S3.SS4">论文 §3.4</a></p>
+<h2 id="第-4-章：成功率、成本和失败原因"><a href="#第-4-章：成功率、成本和失败原因" class="headerlink" title="第 4 章：成功率、成本和失败原因"></a>第 4 章：成功率、成本和失败原因</h2><h3 id="模型与-harness-都会影响分数"><a href="#模型与-harness-都会影响分数" class="headerlink" title="模型与 harness 都会影响分数"></a>模型与 harness 都会影响分数</h3><p>论文当时测得的最高分是 <strong>GPT-5.2 + Codex CLI 的 62.9%</strong>。Claude Opus 4.5 和 Gemini 3 Pro 搭配 Terminus 2 分别达到 <strong>57.8%</strong> 和 <strong>56.9%</strong>。附录表 2 也可以按固定模型或固定框架来读。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#A1">论文 §4、附录 A 表 2</a></p>
+<table>
+<thead>
+<tr>
+<th>想看什么</th>
+<th>固定项</th>
+<th>实际对照</th>
+<th>差值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>换模型的影响</td>
+<td>Codex CLI</td>
+<td>GPT-5-Nano <strong>11.5%</strong> → GPT-5.2 <strong>62.9%</strong></td>
+<td>51.4 个百分点</td>
+</tr>
+<tr>
+<td>换 harness 的影响</td>
+<td>GPT-5.2</td>
+<td>Terminus 2 <strong>54.0%</strong> → Codex CLI <strong>62.9%</strong></td>
+<td>8.9 个百分点</td>
+</tr>
+<tr>
+<td>换 harness 的影响</td>
+<td>Gemini 2.5 Pro</td>
+<td>OpenHands <strong>15.7%</strong> → Terminus 2 <strong>32.6%</strong></td>
+<td>16.9 个百分点</td>
+</tr>
+</tbody></table>
+<p>作者认为，在这组实验中换模型通常影响更大。表里的两组框架对照仍相差近 9 个点和近 17 个点。因为两组对照换的是整套框架，要确定收益来自工具接口、上下文管理还是其他组件，还要逐项比较。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S4">论文 §4</a></p>
+<h3 id="成本和模型进步如何衡量"><a href="#成本和模型进步如何衡量" class="headerlink" title="成本和模型进步如何衡量"></a>成本和模型进步如何衡量</h3><p>大多数尝试在 <strong>20 分钟内</strong>结束，极端个例接近 <strong>两小时</strong>。作者固定 Terminus 2，比较各模型的平均交互轮数、输出 token 数和成功率，两项开销与成功率的相关性都很弱。这组数据描述的是模型之间的差异。要测增加预算有没有用，可以固定同一模型和框架，再改变预算。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S4.SS1">论文 §4.1、附录 G</a></p>
+<p>作者还比较了模型发布日期和评测成绩。从 Gemini 2.5 Pro 发布到 GPT-5.2 发布约八个月，实测最佳成绩接近翻倍。这里每个模型都取它搭配被测框架的最高分，因此曲线描述的是当时可用的模型与 Agent 组合的进步。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S4.SS2">论文 §4.2</a></p>
+<h3 id="人评难度与实测难度"><a href="#人评难度与实测难度" class="headerlink" title="人评难度与实测难度"></a>人评难度与实测难度</h3><p>实测难度依据多种模型用 Terminus 2 做同一道题的通过率划分。低于约三分之一归为困难，达到约三分之二归为容易，中间归为中等。出题人标为<strong>困难</strong>的题里，<strong>93.3%</strong> 在实测中也属于困难。出题人标为<strong>中等</strong>的题里，也有 <strong>54.5%</strong> 在实测中属于困难。因此，同一句「困难题提高了几个点」，要先看用的是哪种难度定义。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S4.SS3">论文 §4.3</a></p>
+<h3 id="整条轨迹和单条命令各能说明什么"><a href="#整条轨迹和单条命令各能说明什么" class="headerlink" title="整条轨迹和单条命令各能说明什么"></a>整条轨迹和单条命令各能说明什么</h3><p><strong>整条轨迹分析</strong>固定 Terminus 2，从失败尝试中抽样，用人标数据校准模型裁判，再判断问题出在哪里。执行类问题包括违反明确要求。连贯性问题包括忘记之前已确认的环境状态。验证类问题包括只检查文件是否存在就宣布完成。在被分析的失败样本里，GPT-5.2 和 Claude Opus 4.5 的执行类错误占主导，Qwen Coder 的三类错误分布更均衡。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S4.SS4">论文 §4.4、附录 C</a></p>
+<p><strong>单条命令分析</strong>看终端命令及其输出。不同模型的命令错误率约为 <strong>9.2%–26.7%</strong>。作者又抽取 <strong>3,800 条失败命令</strong>分类，其中 <strong>24.1%</strong> 涉及可执行程序未安装或不在 <code>PATH</code>。前一组比例以各模型被分析的命令为分母，后一项以抽样的失败命令为分母。命令报错后还有机会恢复，整题是否完成由最终测试判定。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S4.SS5">论文 §4.5</a></p>
+<h2 id="2-0-到今天还能怎么用"><a href="#2-0-到今天还能怎么用" class="headerlink" title="2.0 到今天还能怎么用"></a>2.0 到今天还能怎么用</h2><p>截至 <strong>2026-11-24</strong>，官方榜单最高完成率在 2.0 上为 <strong>84.7%</strong>，在 2.1 上为 <strong>87.4%</strong>，在 4.1 上为 <strong>71.2%</strong>。这是不同版本上各自最高的模型与 Agent 组合成绩。要复现旧论文，用原版题集并对齐运行设置。要区分当前的强 Agent，可以用更新的 4.1。研究 harness 自进化时，还可以把从未参与筛选的任务留作独立验证，看看收益能否迁移。<a target="_blank" rel="noopener" href="https://www.tbench.ai/?version=2.0">2.0 榜单</a> · <a target="_blank" rel="noopener" href="https://www.tbench.ai/?version=2.1">2.1 榜单</a> · <a target="_blank" rel="noopener" href="https://www.tbench.ai/?version=4.1">4.1 榜单</a></p>
+<p>论文也指出，容器和依赖版本固定之后，网络资源、硬件与运行环境仍可能变动。公开题集还面临训练数据污染的可能。跨论文比较时，题集版本、模型、时限、重试次数和运行环境都值得一起核对。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.11868v1#S5">论文 §5</a></p>
+<aside class="paper-question">
+<p class="paper-callout-title">如果评分器改了，演化还会留下同样的修改吗？</p>
+<p>Terminal-Bench 2.1 修订了 2.0 的 89 道题中的 28 道，部分此前无人解出的题在修订后有了通过记录。当通过率决定哪些 harness 修改会被留下时，评分器的偏差也会影响演化选择。一个直接的检查是，用修订后的评分器重新评估同一批候选，看看被选中的版本是否变化。</p>
+</aside>
+
+<p><a target="_blank" rel="noopener" href="https://www.tbench.ai/news/terminal-bench-2-1">Terminal-Bench 2.1 官方更新说明</a></p>
+</div>
+
+      <footer class="post-footer">
+        <div class="post-nav">
+          
+          <div class="post-nav-prev"></div>
+           
+          <div class="post-nav-next">
+            <a href="/Francis-olio/2026/11/23/dream-rsi-reading-notes/" rel="next">
+              Dream-RSI 阅读笔记：用历史回放改进探索策略
+            </a>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <nav class="pagination">
+  
+  <div class="pagination-placeholder"></div>
+  
+</nav>
+
+</div>
+</div>
+    <footer class="footer-container">
+  <div class="footer-content">
+    <p class="footer-text">
+      © 2026
+      <a href="" target="_blank">Francis / Olio / 陈立</a>.
+      All Rights Reserved.
+    </p>
+    <p class="footer-text">
+      Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by 
+      <a href="https://github.com/AsukaCC/YoruKumo" target="_blank">YoruKumo</a>
+    </p>
+    <p class="footer-text">
+      <span>本站已运行</span>
+      <span id="runtime" class="runtime-badge"></span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function calculateRuntime() {
+    // 网站开始运行的时间，格式：年-月-日
+    const startTime = new Date('Sat Jun 27 2026 09:00:00 GMT+0900 (Japan Standard Time)');
+    const currentTime = new Date();
+
+    const timeDiff = currentTime - startTime;
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const dayStr = ' 天 ';
+    const hourStr = ' 小时 ';
+    const minuteStr = ' 分 ';
+    const secondStr = ' 秒';
+
+    document.getElementById(
+      'runtime'
+    ).innerHTML = `${days}${dayStr}${hours}${hourStr}${minutes}${minuteStr}${seconds}${secondStr}`;
+  }
+
+  // 初始运行
+  calculateRuntime();
+  // 每秒更新一次
+  setInterval(calculateRuntime, 1000);
+</script>
+
+
+    <div class="to-top">
+  <svg class="icon" aria-hidden="true">
+    <use xlink:href="#icon-arrowup"></use>
+  </svg>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toTop = document.querySelector('.to-top');
+    if (!toTop) return;
+
+    const hasGsap = typeof gsap !== 'undefined';
+
+    if (hasGsap) {
+      // 初始隐藏状态
+      gsap.set(toTop, { opacity: 0, scale: 0.6, display: 'none' });
+      
+      let isVisible = false;
+
+      window.addEventListener('scroll', function () {
+        const shouldShow = window.scrollY > window.innerHeight;
+        
+        if (shouldShow && !isVisible) {
+          isVisible = true;
+          gsap.killTweensOf(toTop);
+          gsap.set(toTop, { display: 'flex' });
+          gsap.to(toTop, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            ease: 'back.out(1.7)'
+          });
+        } else if (!shouldShow && isVisible) {
+          isVisible = false;
+          gsap.killTweensOf(toTop);
+          gsap.to(toTop, {
+            opacity: 0,
+            scale: 0.6,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              if (!isVisible) gsap.set(toTop, { display: 'none' });
+            }
+          });
+        }
+      });
+
+      // Hover 交互与磁性效果在 animation.js 中全局托管
+    } else {
+      // 优雅降级：传统滚动监听
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > window.innerHeight) {
+          toTop.style.display = 'flex';
+        } else {
+          toTop.style.display = 'none';
+        }
+      });
+    }
+
+    // 点击事件
+    toTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
+  });
+</script>
+
+    
+<script src="/Francis-olio/js/animation.js"></script>
+<script src="/Francis-olio/js/highlight.js"></script>
+<script src="/Francis-olio/js/image-viewer.js"></script>
+
+  <script src="/Francis-olio/js/tasklist.js"></script>
+</body>
+</html>
